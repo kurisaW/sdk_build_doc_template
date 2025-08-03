@@ -1,0 +1,87 @@
+# SDK 文档构建配置文件
+project:
+  name: "SDK_Docs_Template"
+  title: "SDK 文档构建模板"
+  description: "这是一个专为SDK文档构建设计的GitHub模板仓库，提供完整的自动化文档构建机制。"
+  version: "1.0.0"
+  author: "Your Name"
+  copyright: "2025, Your Company"
+  language: "zh_CN"
+
+# 仓库配置
+repository:
+  name: "sdk-docs-template"
+  projects_dir: "../projects"
+  docs_dir: "."
+
+# 文档分类配置
+categories:
+  basic:
+    name: "基础篇"
+    description: "基础功能示例"
+    patterns:
+      - "basic_*"
+      - "template_*"
+  
+  driver:
+    name: "驱动篇"
+    description: "外设驱动示例"
+    patterns:
+      - "driver_*"
+      - "uart_*"
+      - "spi_*"
+      - "i2c_*"
+      - "adc_*"
+  
+  component:
+    name: "组件篇"
+    description: "网络组件示例"
+    patterns:
+      - "component_*"
+      - "network_*"
+      - "mqtt_*"
+      - "http_*"
+      - "tcp_*"
+  
+  protocol:
+    name: "协议篇"
+    description: "工业协议示例"
+    patterns:
+      - "protocol_*"
+      - "ethercat_*"
+      - "modbus_*"
+      - "profinet_*"
+      - "ethernetip_*"
+
+# 文档生成配置
+generation:
+  copy_files:
+    - "README.md"
+    - "README_zh.md"
+  copy_dirs:
+    - "figures"
+  output_structure:
+    - "basic"
+    - "driver"
+    - "component"
+    - "protocol"
+
+# Sphinx 配置
+sphinx:
+  theme: "sphinx_rtd_theme"
+  extensions:
+    - "myst_parser"
+  source_suffix:
+    ".rst": "restructuredtext"
+    ".md": "markdown"
+  myst_extensions:
+    - "colon_fence"
+    - "deflist"
+    - "dollarmath"
+    - "html_image"
+    - "html_admonition"
+    - "replacements"
+    - "smartquotes"
+    - "strikethrough"
+    - "substitution"
+    - "tasklist" 

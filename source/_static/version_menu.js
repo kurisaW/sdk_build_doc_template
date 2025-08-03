@@ -12,7 +12,7 @@
     async function fetchVersionInfo() {
         try {
             // 优先尝试读取版本配置文件
-            let response = await fetch('../../.github/versions.json');
+            let response = await fetch('/_static/versions.json');
             if (response.ok) {
                 const versionConfig = await response.json();
                 console.log('从本地配置文件加载版本信息:', versionConfig);

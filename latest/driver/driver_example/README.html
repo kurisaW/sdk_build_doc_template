@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>驱动示例项目 &mdash; SDK_Docs_Template 1.0.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/version_menu.css?v=ad0e61b7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=86952a2f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=beaddf03"></script>
+      <script src="../../_static/version_menu.js?v=c05496ee"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SDK_Docs_Template
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <p class="caption" role="heading"><span class="caption-text">目录</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic/index.html">基础篇</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">驱动篇</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../component/index.html">组件篇</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SDK_Docs_Template</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">驱动示例项目</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>驱动示例项目<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>这是一个外设驱动示例项目，展示了如何使用SDK中的各种驱动接口。</p>
+<section id="id2">
+<h2>功能特性<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>UART通信驱动</p></li>
+<li><p>SPI接口使用</p></li>
+<li><p>I2C设备访问</p></li>
+<li><p>ADC数据采集</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>快速开始<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="id4">
+<h3>硬件要求<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>开发板一块</p></li>
+<li><p>串口转USB模块</p></li>
+<li><p>SPI/I2C外设模块</p></li>
+<li><p>模拟信号源</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>编译步骤<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>配置硬件接口</p></li>
+<li><p>修改驱动参数</p></li>
+<li><p>编译项目</p></li>
+<li><p>下载运行</p></li>
+</ol>
+</section>
+<section id="id6">
+<h3>运行结果<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<p>程序会初始化各种外设驱动，并通过串口输出测试结果。</p>
+</section>
+</section>
+<section id="id7">
+<h2>代码结构<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>driver_example/
+├── src/
+│   ├── main.c          # 主程序
+│   ├── uart_drv.c      # UART驱动
+│   ├── spi_drv.c       # SPI驱动
+│   ├── i2c_drv.c       # I2C驱动
+│   └── adc_drv.c       # ADC驱动
+├── inc/
+│   ├── uart_drv.h
+│   ├── spi_drv.h
+│   ├── i2c_drv.h
+│   └── adc_drv.h
+└── README.md
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h2>驱动接口<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<section id="uart">
+<h3>UART驱动<a class="headerlink" href="#uart" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 初始化UART</span>
+<span class="n">uart_init</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+
+<span class="c1">// 发送数据</span>
+<span class="n">uart_send</span><span class="p">(</span><span class="s">&quot;Hello World</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="c1">// 接收数据</span>
+<span class="kt">char</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">uart_receive</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="spi">
+<h3>SPI驱动<a class="headerlink" href="#spi" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 初始化SPI</span>
+<span class="n">spi_init</span><span class="p">(</span><span class="n">SPI_MODE0</span><span class="p">,</span><span class="w"> </span><span class="mi">1000000</span><span class="p">);</span>
+
+<span class="c1">// 发送数据</span>
+<span class="n">spi_send</span><span class="p">(</span><span class="mh">0x55</span><span class="p">);</span>
+
+<span class="c1">// 接收数据</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spi_receive</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="i2c">
+<h3>I2C驱动<a class="headerlink" href="#i2c" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 初始化I2C</span>
+<span class="n">i2c_init</span><span class="p">(</span><span class="mi">100000</span><span class="p">);</span>
+
+<span class="c1">// 写数据</span>
+<span class="n">i2c_write</span><span class="p">(</span><span class="mh">0x50</span><span class="p">,</span><span class="w"> </span><span class="mh">0x00</span><span class="p">,</span><span class="w"> </span><span class="mh">0x55</span><span class="p">);</span>
+
+<span class="c1">// 读数据</span>
+<span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i2c_read</span><span class="p">(</span><span class="mh">0x50</span><span class="p">,</span><span class="w"> </span><span class="mh">0x00</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="adc">
+<h3>ADC驱动<a class="headerlink" href="#adc" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// 初始化ADC</span>
+<span class="n">adc_init</span><span class="p">(</span><span class="n">ADC_CH0</span><span class="p">);</span>
+
+<span class="c1">// 读取数据</span>
+<span class="kt">uint16_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adc_read</span><span class="p">(</span><span class="n">ADC_CH0</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id9">
+<h2>注意事项<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>检查硬件连接</p></li>
+<li><p>确认驱动参数</p></li>
+<li><p>观察串口输出</p></li>
+<li><p>验证数据正确性</p></li>
+</ul>
+</section>
+<section id="id10">
+<h2>故障排除<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<p>常见问题及解决方案：</p>
+<ol class="arabic simple">
+<li><p><strong>串口无输出</strong> - 检查波特率设置</p></li>
+<li><p><strong>SPI通信失败</strong> - 确认时钟极性和相位</p></li>
+<li><p><strong>I2C设备无响应</strong> - 检查地址和时序</p></li>
+<li><p><strong>ADC数据异常</strong> - 验证参考电压</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

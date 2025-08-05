@@ -184,8 +184,8 @@ def main():
             subprocess.run([sys.executable, 'version_generator.py', '--all'], check=True)
             print("\n🎉 所有版本构建完成!")
             return
-        except subprocess.CalledProcessError:
-            print("\n❌ 多版本构建失败!")
+        except subprocess.CalledProcessError as e:
+            print(f"\n❌ 多版本构建失败: {e}")
             sys.exit(1)
     
     success = build_docs(clean=args.clean, serve=args.serve, port=args.port)

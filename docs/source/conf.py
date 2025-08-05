@@ -67,15 +67,10 @@ exclude_patterns = [
     'MIGRATION_GUIDE.md',
     'OPTIMIZATION_SUMMARY.md',
     'README.md',
-    'setup_new_project.py',
-    'build_local.py',
-    'template_config.yaml',
-    'config.yaml',
     'requirements.txt',
-    'version_generator.py',
-    'doc_generator.py',
     'utils/',
     '_templates/',
+    '_static/',
     '_build/',
 ]
 

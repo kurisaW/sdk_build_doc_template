@@ -11,7 +11,7 @@ project:
 # 仓库配置
 repository:
   name: "sdk-docs-template"
-  projects_dir: "../projects"
+  projects_dir: "../../projects"
   docs_dir: "."
 
 # 文档分类配置

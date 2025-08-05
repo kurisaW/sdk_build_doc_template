@@ -30,7 +30,7 @@ class IndexGenerator:
 
 """
         for project in projects:
-            content += f"   {project}/README\n"
+            content += f"   {project}/README_zh\n"
         
         content += f"\n这些示例展示了 SDK 的 {category_name}。\n"
         return content
@@ -41,7 +41,7 @@ class IndexGenerator:
         title_length = len(title.encode('utf-8'))
         underline = '=' * title_length
 
-        content = f""".. {project_info.get('name', 'SDK')} documentation main file, created by sphinx-quickstart
+        content = f""".. {project_info.get('name', 'SDK')} documentation master file, created by sphinx-quickstart
 
 {title}
 {underline}
@@ -50,9 +50,11 @@ class IndexGenerator:
    :maxdepth: 2
    :caption: 目录
 
+   start/index
    basic/index
    driver/index
    component/index
+   protocol/index
 
 项目简介
 --------

@@ -255,12 +255,12 @@ def create_versions_list():
     versions_content = """# 版本列表
 # 每行一个版本，以#开头的行为注释
 # 支持以下格式:
-# - main (最新版本)
+# - master (最新版本)
 # - v1.0 (具体版本)
 # - v1.1
 # - v2.0
 
-main
+master
 v1.0
 """
     
@@ -308,7 +308,7 @@ def main():
     print("5. 本地预览:")
     print("   python build_local.py --serve")
     print("\n🔗 部署相关:")
-    print("- GitHub Pages: 推送到main分支自动部署")
+    print("- GitHub Pages: 推送到master分支自动部署")
     print("- Read the Docs: 连接仓库后自动构建")
     print("\n📚 更多信息请查看 README.md")
 

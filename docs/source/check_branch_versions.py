@@ -35,44 +35,22 @@ def get_all_branches():
         return []
 
 def load_versions():
-    """从 versions.json 文件加载版本列表"""
-    versions_file = Path("../.github/versions.json")
+    """从 versions.list 文件加载版本列表"""
+    versions_file = Path("../.github/versions.list")
     if not versions_file.exists():
         print(f"错误: 版本文件不存在: {versions_file}")
         return []
+        
+    versions = []
+    with open(versions_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                version = line.split('#')[0].strip()
+                if version:
+                    versions.append(version)
     
-    try:
-        import json
-        with open(versions_file, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        
-        versions = list(config.get('versions', {}).keys())
-        return versions
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"错误: 版本配置文件格式错误: {e}")
-        return []
-
-def get_main_branch():
-    """从版本配置中获取主分支名称"""
-    versions_file = Path("../.github/versions.json")
-    if not versions_file.exists():
-        return 'main'  # 默认值
-    
-    try:
-        import json
-        with open(versions_file, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        
-        # 查找显示为"最新版本"的分支
-        for version, display_name in config.get('versions', {}).items():
-            if display_name == "最新版本":
-                return version
-        
-        # 如果没有找到，返回第一个版本或默认值
-        versions = list(config.get('versions', {}).keys())
-        return versions[0] if versions else 'main'
-    except (json.JSONDecodeError, KeyError):
-        return 'main'  # 默认值
+    return versions
 
 def check_branch_version_mapping():
     """检查分支版本映射关系"""
@@ -123,7 +101,7 @@ def check_branch_version_mapping():
     else:
         print(f"⚠️  当前分支 '{current_branch}' 不在版本列表中")
         print("建议:")
-        print(f"  1. 将分支 '{current_branch}' 添加到 .github/versions.json")
+        print(f"  1. 将分支 '{current_branch}' 添加到 .github/versions.list")
         print(f"  2. 或者切换到版本列表中的分支")
         return False
 
@@ -135,10 +113,10 @@ def check_github_actions_ready():
     
     # 检查必要文件
     required_files = [
-        "../.github/workflows/gh-pages.yml",
-        "../.github/versions.json",
-        "version_generator.py",
-        "config.yaml"
+        ".github/workflows/gh-pages.yml",
+        ".github/versions.list",
+        "source/version_generator.py",
+        "source/config.yaml"
     ]
     
     all_ready = True

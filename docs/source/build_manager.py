@@ -12,8 +12,11 @@ import json
 import shutil
 import subprocess
 import argparse
+import platform
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
+from shutil import which
+import yaml
 
 class VersionConfig:
     """版本配置类"""
@@ -31,9 +34,10 @@ class BuildManager:
         self.project_root = self._find_project_root()
         self.versions_file = self.project_root / '.github' / 'versions.json'
         self.docs_source = self.project_root / 'docs' / 'source'
-        self.build_root = self.docs_source / '_build'
+        # 统一切换到新的构建输出根目录: source_build/html/<version>
+        self.build_root = self.docs_source / 'source_build'
         self.worktrees_dir = self.build_root / 'worktrees'
-        self.versions_dir = self.build_root / 'versions'
+        self.versions_dir = self.build_root / 'html'
         
     def _find_project_root(self) -> Path:
         """查找项目根目录"""
@@ -103,8 +107,8 @@ class BuildManager:
         
         # 检查 docs/source 目录是否存在
         if worktree_path == Path.cwd():
-            # 如果是当前分支，直接使用当前目录
-            docs_source_in_worktree = Path.cwd()
+            # 如果是当前分支，使用主分支的 docs/source 目录
+            docs_source_in_worktree = self.docs_source
         else:
             docs_source_in_worktree = worktree_path / 'docs' / 'source'
             if not docs_source_in_worktree.exists():
@@ -123,6 +127,26 @@ class BuildManager:
             os.chdir(worktree_path)
         
         try:
+            # 读取项目名称用于 PDF 命名
+            project_name = 'SDK_Docs'
+            try:
+                cfg_path = docs_source_in_worktree / 'config.yaml'
+                if cfg_path.exists():
+                    with open(cfg_path, 'r', encoding='utf-8') as f:
+                        cfg = yaml.safe_load(f) or {}
+                        project_name = (cfg.get('project', {}) or {}).get('name', project_name)
+            except Exception:
+                pass
+            def _slugify(name: str) -> str:
+                safe = []
+                for ch in name:
+                    if ch.isalnum() or ('\u4e00' <= ch <= '\u9fa5'):
+                        safe.append(ch)
+                    elif ch in [' ', '-', '_']:
+                        safe.append('_' if ch == ' ' else ch)
+                s = ''.join(safe).strip('_')
+                return s or 'SDK_Docs'
+            pdf_basename = _slugify(project_name) + '.pdf'
             # 运行文档生成脚本（如果存在）
             doc_generator = docs_source_in_worktree / 'doc_generator.py'
             if doc_generator.exists():
@@ -138,7 +162,8 @@ class BuildManager:
                              cwd=str(docs_source_in_worktree), check=True)
             
             # 构建 HTML 文档
-            output_dir = docs_source_in_worktree / '_build' / 'html'
+            # 输出到新的路径: source_build/html/<version_url_path>
+            output_dir = self.build_root / 'html' / version_config.url_path
             print(f"构建 HTML 文档: {output_dir}")
             subprocess.run([
                 sys.executable, '-m', 'sphinx.cmd.build',
@@ -147,8 +172,97 @@ class BuildManager:
                 str(output_dir)
             ], check=True)
             
-            # 生成版本配置
-            self._generate_version_config(output_dir, version_config)
+            # 生成版本配置（注入项目源目录片段与复制文件规则）
+            # 从 docs/source/config.yaml 读取 repository.projects_dir，并转换为仓库内相对路径片段
+            projects_dir_web = ''
+            copy_files_list = []
+            try:
+                cfg_path = docs_source_in_worktree / 'config.yaml'
+                if cfg_path.exists():
+                    with open(cfg_path, 'r', encoding='utf-8') as f:
+                        repo_cfg = yaml.safe_load(f) or {}
+                        pdir = ((repo_cfg.get('repository', {}) or {}).get('projects_dir', '') or '').replace('\\','/')
+                        # 若是相对路径如 ../../project，则仅取末段 "project"
+                        if pdir:
+                            parts = [seg for seg in pdir.split('/') if seg and seg != '..' and seg != '.']
+                            if parts:
+                                projects_dir_web = '/'.join(parts[-1:])
+                        copy_files_list = ((repo_cfg.get('generation', {}) or {}).get('copy_files', []) or [])
+            except Exception:
+                pass
+
+            self._generate_version_config(output_dir, version_config, projects_dir_web, copy_files_list)
+
+            # 构建 PDF（仅使用增强版V2生成器，生成中英文两个版本）
+            pdf_file = None
+            from pdf_generator_enhanced_v2 import PDFGeneratorV2
+            print("使用增强版V2 PDF生成器...")
+            pdf_generator = PDFGeneratorV2(output_dir, output_dir / '_static')
+            # 中文
+            if pdf_generator.generate_pdf(project_name, language="zh"):
+                static_dir = output_dir / '_static'
+                candidate_pdf = static_dir / f'{project_name}.pdf'
+                if candidate_pdf.exists():
+                    pdf_file = candidate_pdf
+                    print(f"✓ 中文PDF生成成功: {pdf_file}")
+                else:
+                    print("⚠️  中文PDF文件未找到")
+            else:
+                print("⚠️  中文PDF生成失败")
+            # 英文
+            print("正在生成英文版本PDF...")
+            if pdf_generator.generate_pdf(project_name, language="en"):
+                static_dir = output_dir / '_static'
+                # 英文 PDF 名称使用下划线替换空格
+                en_pdf = static_dir / f"{project_name.replace(' ', '_')}_EN.pdf"
+                if en_pdf.exists():
+                    print(f"✓ 英文PDF生成成功: {en_pdf}")
+                else:
+                    print("⚠️  英文PDF文件未找到")
+            else:
+                print("⚠️  英文PDF生成失败")
+
+            # 将 PDF 复制到 HTML 的 _static 目录，供在线下载
+            static_dir = output_dir / '_static'
+            static_dir.mkdir(exist_ok=True)
+            
+            if pdf_file and pdf_file.exists():
+                target_pdf = static_dir / pdf_basename
+                try:
+                    # 避免源与目标为同一文件时复制报错
+                    if pdf_file.resolve() != target_pdf.resolve():
+                        shutil.copy2(pdf_file, target_pdf)
+                        print(f"✓ 生成并复制 PDF: {pdf_file.name} -> {target_pdf}")
+                    else:
+                        print(f"✓ PDF 已在目标位置: {target_pdf}")
+                except Exception as copy_err:
+                    print(f"⚠️  复制 PDF 时出现问题（已忽略）：{copy_err}")
+                # 兼容默认名称，额外复制一份 sdk-docs.pdf，便于前端 file:// 环境无需获取项目信息
+                fallback_pdf = static_dir / 'sdk-docs.pdf'
+                try:
+                    shutil.copy2(pdf_file, fallback_pdf)
+                except Exception:
+                    pass
+            else:
+                print("⚠️  未生成 PDF，创建占位文件")
+                # 创建一个占位PDF文件，避免下载按钮不显示
+                placeholder_pdf = static_dir / 'sdk-docs.pdf'
+                with open(placeholder_pdf, 'w', encoding='utf-8') as f:
+                    f.write("PDF文件正在生成中，请稍后重试...")
+            
+            # 写入项目信息，供前端读取文件名
+            project_info = {
+                'projectName': project_name,
+                'pdfFileName': pdf_basename
+            }
+            with open(static_dir / 'project_info.json', 'w', encoding='utf-8') as f:
+                json.dump(project_info, f, ensure_ascii=False)
+            # 兼容 file:// 环境：同时输出 JS 版本，供页面直接读取
+            try:
+                with open(static_dir / 'project_info.js', 'w', encoding='utf-8') as f_js:
+                    f_js.write('window.projectInfo = ' + json.dumps(project_info, ensure_ascii=False) + ';\n')
+            except Exception:
+                pass
             
             return True
             
@@ -160,8 +274,10 @@ class BuildManager:
             if worktree_path != Path.cwd():
                 os.chdir(self.project_root)
     
-    def _generate_version_config(self, output_dir: Path, version_config: VersionConfig):
-        """生成版本切换配置文件"""
+    def _generate_version_config(self, output_dir: Path, version_config: VersionConfig, projects_dir_web: str = '', copy_files: list = None):
+        """生成版本切换配置文件
+        projects_dir_web: 仓库内项目根路径（URL 片段），例如 "project" 或 "projects/examples"
+        """
         config = self.load_versions_config()
         
         # 创建版本配置 JSON 文件 - 修复格式
@@ -200,46 +316,188 @@ class BuildManager:
         static_config_file = static_dir / 'version_config.json'
         with open(static_config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
+        # 生成可直接加载的 JS，提供 window.versionInfo（含当前版本信息）
+        version_info_js = static_dir / 'version_info.js'
+        version_info_obj = {
+            "name": version_config.name,
+            "display_name": version_config.display_name,
+            "branch": version_config.branch,
+            "url_path": version_config.url_path,
+            "description": version_config.description,
+            "projectsDir": projects_dir_web or '',
+            "copyFiles": copy_files or []
+        }
+        with open(version_info_js, 'w', encoding='utf-8') as f:
+            f.write("window.versionInfo = " + json.dumps(version_info_obj, ensure_ascii=False) + ";\n")
         
         print(f"✓ 生成版本配置文件: {version_config_file}")
         print(f"✓ 生成静态配置文件: {static_config_file}")
     
     def copy_build_result(self, worktree_path: Path, version_config: VersionConfig):
-        """复制构建结果到版本目录"""
-        # 修复路径处理逻辑
-        if worktree_path == Path.cwd():
-            # 如果是当前分支，使用当前目录的构建结果
-            source_dir = self.docs_source / '_build' / 'html'
-        else:
-            # 如果是其他分支的worktree
-            source_dir = worktree_path / 'docs' / 'source' / '_build' / 'html'
-        
+        """就地构建后无需复制，保持接口以兼容调用方"""
         target_dir = self.versions_dir / version_config.url_path
-        
-        if source_dir.exists():
-            # 清理目标目录
-            if target_dir.exists():
-                shutil.rmtree(target_dir)
-            
-            # 复制构建结果
-            shutil.copytree(source_dir, target_dir)
-            print(f"✓ 复制构建结果: {source_dir} -> {target_dir}")
+        if target_dir.exists():
+            print(f"✓ 构建结果已在目标目录: {target_dir}")
+            return True
         else:
-            print(f"✗ 构建结果不存在: {source_dir}")
+            print(f"✗ 目标目录不存在: {target_dir}")
             return False
+
+    def _generate_pdf_latex(self, docs_source_in_worktree: Path, version_config: VersionConfig) -> Optional[Path]:
+        """使用传统LaTeX方法生成PDF（作为回退方案）"""
+        self._ensure_pdf_dependencies()
+        pdf_file = None
         
-        return True
+        try:
+            # 尝试 latexpdf 构建器
+            latexpdf_dir = self.build_root / 'latexpdf' / version_config.url_path
+            print(f"尝试使用 latexpdf 构建: {latexpdf_dir}")
+            subprocess.run([
+                sys.executable, '-m', 'sphinx.cmd.build',
+                '-b', 'latexpdf',
+                str(docs_source_in_worktree),
+                str(latexpdf_dir)
+            ], check=True)
+
+            # 预期输出：conf.py 设定主文档名 sdk-docs.tex -> sdk-docs.pdf
+            candidate = latexpdf_dir / 'sdk-docs.pdf'
+            if candidate.exists():
+                pdf_file = candidate
+            else:
+                # 回退查找任意 pdf
+                pdf_candidates = list(latexpdf_dir.glob('*.pdf'))
+                if pdf_candidates:
+                    pdf_file = pdf_candidates[0]
+        except subprocess.CalledProcessError:
+            # 回退到 latex + 编译链
+            latex_dir = self.build_root / 'latex' / version_config.url_path
+            print(f"latexpdf 失败，回退到 LaTeX 构建: {latex_dir}")
+            subprocess.run([
+                sys.executable, '-m', 'sphinx.cmd.build',
+                '-b', 'latex',
+                str(docs_source_in_worktree),
+                str(latex_dir)
+            ], check=True)
+
+            try:
+                tex_files = list(latex_dir.glob('*.tex'))
+                main_tex = None
+                # 优先使用 conf.py 指定的 sdk-docs.tex
+                candidate_tex = latex_dir / 'sdk-docs.tex'
+                if candidate_tex.exists():
+                    main_tex = candidate_tex
+                elif tex_files:
+                    main_tex = tex_files[0]
+
+                if main_tex:
+                    # latexmk -> tectonic -> pdflatex
+                    compiled = False
+                    try:
+                        subprocess.run(['latexmk', '-pdf', '-silent', '-interaction=nonstopmode', str(main_tex.name)], cwd=str(latex_dir), check=True)
+                        compiled = True
+                    except Exception:
+                        try:
+                            subprocess.run(['tectonic', str(main_tex.name)], cwd=str(latex_dir), check=True)
+                            compiled = True
+                        except Exception:
+                            try:
+                                subprocess.run(['pdflatex', '-interaction=nonstopmode', str(main_tex.name)], cwd=str(latex_dir), check=True)
+                                subprocess.run(['pdflatex', '-interaction=nonstopmode', str(main_tex.name)], cwd=str(latex_dir), check=True)
+                                compiled = True
+                            except Exception:
+                                pass
+
+                    if compiled:
+                        # 优先 sdk-docs.pdf
+                        candidate_pdf = latex_dir / 'sdk-docs.pdf'
+                        if candidate_pdf.exists():
+                            pdf_file = candidate_pdf
+                        else:
+                            pdf_candidates = list(latex_dir.glob('*.pdf'))
+                            if pdf_candidates:
+                                pdf_file = pdf_candidates[0]
+            except Exception as e:
+                print(f"⚠️  LaTeX 回退编译失败: {e}")
+        
+        return pdf_file
+
+    def _ensure_pdf_dependencies(self):
+        """尽力确保本机具备 PDF 构建依赖。优先 tectonic，其次 latexmk/texlive，再次 pdflatex。
+        以非交互方式尝试安装，失败仅警告不报错。
+        """
+        def _exists(cmd: str) -> bool:
+            return which(cmd) is not None
+
+        have_tool = _exists('tectonic') or _exists('latexmk') or _exists('pdflatex')
+        have_xelatex = _exists('xelatex')
+        if have_tool and have_xelatex:
+            return
+
+        system = platform.system().lower()
+        print("尝试安装 PDF 构建依赖...")
+        try:
+            if system == 'windows':
+                if _exists('choco'):
+                    try:
+                        subprocess.run(['choco', 'install', 'tectonic', '-y'], check=False)
+                    except Exception:
+                        pass
+                    try:
+                        subprocess.run(['choco', 'install', 'miktex', '-y'], check=False)
+                    except Exception:
+                        pass
+            elif system == 'linux':
+                if _exists('apt-get'):
+                    subprocess.run(['sudo', 'apt-get', 'update'], check=False)
+                    subprocess.run(['sudo', 'apt-get', 'install', '-y', 'tectonic'], check=False)
+                    subprocess.run(['sudo', 'apt-get', 'install', '-y', 'latexmk', 'texlive-latex-recommended', 'texlive-latex-extra', 'texlive-fonts-recommended', 'texlive-xetex', 'fonts-noto-cjk'], check=False)
+            elif system == 'darwin':
+                if _exists('brew'):
+                    subprocess.run(['brew', 'install', 'tectonic'], check=False)
+                    subprocess.run(['brew', 'install', 'basictex'], check=False)
+                    subprocess.run(['sudo', 'tlmgr', 'update', '--self'], check=False)
+                    subprocess.run(['sudo', 'tlmgr', 'install', 'latexmk', 'xetex'], check=False)
+        except Exception as e:
+            print(f"PDF 依赖安装尝试失败: {e}")
     
     def cleanup_worktree(self, worktree_path: Path):
-        """清理 worktree"""
-        if worktree_path.exists():
-            try:
-                subprocess.run(['git', 'worktree', 'remove', str(worktree_path)], 
-                             check=True, capture_output=True)
-                print(f"✓ 清理 worktree: {worktree_path}")
-            except subprocess.CalledProcessError as e:
-                print(f"⚠️  警告: 无法自动清理 worktree: {e}")
-                print(f"   请手动删除: {worktree_path}")
+        """清理 worktree：仅对 source_build/worktrees 下的有效 worktree 执行删除"""
+        if not worktree_path.exists():
+            return
+
+        # 仅在我们的临时 worktrees 根目录下才允许删除
+        try:
+            worktree_root = self.worktrees_dir.resolve()
+            candidate = worktree_path.resolve()
+            is_under_root = str(candidate).startswith(str(worktree_root))
+        except Exception:
+            is_under_root = False
+
+        if not is_under_root:
+            # 避免误删非临时目录（例如当前仓库根或任意外部路径）
+            return
+
+        # 在删除之前确认它是一个已登记的 git worktree
+        is_git_worktree = False
+        try:
+            listed = subprocess.run(['git', 'worktree', 'list'], capture_output=True, text=True, check=True).stdout
+            is_git_worktree = str(candidate) in listed
+        except Exception:
+            pass
+
+        if is_git_worktree:
+            # 尝试优先用 git worktree remove --force
+            for args in (["git", "worktree", "remove", "--force", str(candidate)],
+                         ["git", "worktree", "remove", str(candidate)]):
+                try:
+                    subprocess.run(args, check=True, capture_output=True)
+                    print(f"✓ 清理 worktree: {worktree_path}")
+                    return
+                except subprocess.CalledProcessError:
+                    continue
+
+        # 兜底：非登记 worktree 或命令失败，做文件系统级别删除
+        shutil.rmtree(candidate, ignore_errors=True)
     
     def build_all_versions(self, clean=False):
         """构建所有版本"""
@@ -289,10 +547,9 @@ class BuildManager:
                 # 清理 worktree
                 self.cleanup_worktree(worktree_path)
         
-        # 创建统一入口页面
+        # 创建统一入口页面，指向新的根目录结构
         self.create_unified_index()
-        
-        # 在versions目录下也创建根页面
+        # 在 html 根目录下创建 index.html 指向默认版本
         self.create_versions_root_index()
         
         print("\n" + "=" * 60)

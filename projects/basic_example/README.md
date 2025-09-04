@@ -1,57 +1,57 @@
-# 基础示例项目
+# Basic Example Project
 
-这是一个基础功能示例项目，展示了SDK的基本使用方法。
+This is a basic example project that demonstrates the fundamental usage of the SDK.
 
-## 功能特性
+## Features
 
-- LED闪烁控制
-- 按键中断处理
-- 基础定时器使用
+* LED blinking control
+* Button interrupt handling
+* Basic timer usage
 
-## 快速开始
+## Quick Start
 
-### 硬件要求
+### Hardware Requirements
 
-- 开发板一块
-- USB数据线
-- 调试器（可选）
+* One development board
+* USB cable
+* Debugger (optional)
 
-### 编译步骤
+### Build Steps
 
-1. 打开项目文件
-2. 配置编译选项
-3. 编译项目
-4. 下载到开发板
+1. Open the project files
+2. Configure the build options
+3. Compile the project
+4. Download to the development board
 
-### 运行结果
+### Running Result
 
-程序运行后，LED会按照设定的频率闪烁，按键按下时会触发中断处理。
+After the program runs, the LED will blink at the configured frequency, and pressing the button will trigger an interrupt handler.
 
-## 代码结构
+## Code Structure
 
 ```
 basic_example/
 ├── src/
-│   ├── main.c          # 主程序
-│   ├── led.c           # LED控制
-│   └── key.c           # 按键处理
+│   ├── main.c          # Main program
+│   ├── led.c           # LED control
+│   └── key.c           # Button handling
 ├── inc/
 │   ├── led.h
 │   └── key.h
 └── README.md
 ```
 
-## 注意事项
+## Notes
 
-- 确保硬件连接正确
-- 检查电源电压是否正常
-- 观察串口输出信息
+* Ensure hardware connections are correct
+* Check that the power supply voltage is normal
+* Monitor the serial output information
 
-## 故障排除
+## Troubleshooting
 
-如果遇到问题，请检查：
+If issues occur, please check:
 
-1. 硬件连接
-2. 电源供应
-3. 程序配置
-4. 编译选项 
+1. Hardware connections
+2. Power supply
+3. Program configuration
+4. Build options

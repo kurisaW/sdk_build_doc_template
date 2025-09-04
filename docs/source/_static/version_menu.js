@@ -4,7 +4,7 @@
     
     // 版本配置 - 将从版本配置文件获取
     let VERSION_CONFIG = {
-        current: 'master',
+        current: 'main',
         versions: {}
     };
     
@@ -84,7 +84,7 @@
             
             // 确定当前版本
             const currentPath = window.location.pathname;
-            let currentVersion = config.default_version || 'master';
+            let currentVersion = config.default_version || 'main';
             
             // 从URL路径判断当前版本
             for (const version of config.versions) {
@@ -120,17 +120,12 @@
             
             // 使用默认配置
             VERSION_CONFIG = {
-                current: 'master',
+                current: 'main',
                 versions: {
-                    'master': {
+                    'main': {
                         display_name: '最新版本',
                         url_path: 'latest',
                         description: '最新开发版本'
-                    },
-                    'v1.0': {
-                        display_name: 'v1.0',
-                        url_path: 'v1.0',
-                        description: '稳定版本 v1.0'
                     }
                 }
             };

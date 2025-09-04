@@ -1,44 +1,44 @@
-# 驱动示例项目
+# Driver Example Project
 
-这是一个外设驱动示例项目，展示了如何使用SDK中的各种驱动接口。
+This is a peripheral driver example project that demonstrates how to use various driver interfaces in the SDK.
 
-## 功能特性
+## Features
 
-- UART通信驱动
-- SPI接口使用
-- I2C设备访问
-- ADC数据采集
+* UART communication driver
+* SPI interface usage
+* I2C device access
+* ADC data acquisition
 
-## 快速开始
+## Quick Start
 
-### 硬件要求
+### Hardware Requirements
 
-- 开发板一块
-- 串口转USB模块
-- SPI/I2C外设模块
-- 模拟信号源
+* One development board
+* USB-to-serial module
+* SPI/I2C peripheral modules
+* Analog signal source
 
-### 编译步骤
+### Build Steps
 
-1. 配置硬件接口
-2. 修改驱动参数
-3. 编译项目
-4. 下载运行
+1. Configure hardware interfaces
+2. Modify driver parameters
+3. Compile the project
+4. Download and run
 
-### 运行结果
+### Running Result
 
-程序会初始化各种外设驱动，并通过串口输出测试结果。
+The program will initialize various peripheral drivers and output test results via the serial port.
 
-## 代码结构
+## Code Structure
 
 ```
 driver_example/
 ├── src/
-│   ├── main.c          # 主程序
-│   ├── uart_drv.c      # UART驱动
-│   ├── spi_drv.c       # SPI驱动
-│   ├── i2c_drv.c       # I2C驱动
-│   └── adc_drv.c       # ADC驱动
+│   ├── main.c          # Main program
+│   ├── uart_drv.c      # UART driver
+│   ├── spi_drv.c       # SPI driver
+│   ├── i2c_drv.c       # I2C driver
+│   └── adc_drv.c       # ADC driver
 ├── inc/
 │   ├── uart_drv.h
 │   ├── spi_drv.h
@@ -47,69 +47,69 @@ driver_example/
 └── README.md
 ```
 
-## 驱动接口
+## Driver Interfaces
 
-### UART驱动
+### UART Driver
 
 ```c
-// 初始化UART
+// Initialize UART
 uart_init(115200);
 
-// 发送数据
+// Send data
 uart_send("Hello World\n");
 
-// 接收数据
+// Receive data
 char data = uart_receive();
 ```
 
-### SPI驱动
+### SPI Driver
 
 ```c
-// 初始化SPI
+// Initialize SPI
 spi_init(SPI_MODE0, 1000000);
 
-// 发送数据
+// Send data
 spi_send(0x55);
 
-// 接收数据
+// Receive data
 uint8_t data = spi_receive();
 ```
 
-### I2C驱动
+### I2C Driver
 
 ```c
-// 初始化I2C
+// Initialize I2C
 i2c_init(100000);
 
-// 写数据
+// Write data
 i2c_write(0x50, 0x00, 0x55);
 
-// 读数据
+// Read data
 uint8_t data = i2c_read(0x50, 0x00);
 ```
 
-### ADC驱动
+### ADC Driver
 
 ```c
-// 初始化ADC
+// Initialize ADC
 adc_init(ADC_CH0);
 
-// 读取数据
+// Read data
 uint16_t value = adc_read(ADC_CH0);
 ```
 
-## 注意事项
+## Notes
 
-- 检查硬件连接
-- 确认驱动参数
-- 观察串口输出
-- 验证数据正确性
+* Check hardware connections
+* Confirm driver parameters
+* Observe serial output
+* Verify data correctness
 
-## 故障排除
+## Troubleshooting
 
-常见问题及解决方案：
+Common issues and solutions:
 
-1. **串口无输出** - 检查波特率设置
-2. **SPI通信失败** - 确认时钟极性和相位
-3. **I2C设备无响应** - 检查地址和时序
-4. **ADC数据异常** - 验证参考电压 
+1. **No serial output** – Check baud rate settings
+2. **SPI communication failure** – Verify clock polarity and phase
+3. **No response from I2C device** – Check address and timing
+4. **Abnormal ADC data** – Verify reference voltage

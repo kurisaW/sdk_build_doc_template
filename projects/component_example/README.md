@@ -1,44 +1,44 @@
-# 组件示例项目
+# Component Example Project
 
-这是一个网络组件示例项目，展示了如何使用SDK中的各种网络组件和协议栈。
+This is a network component example project that demonstrates how to use various network components and protocol stacks in the SDK.
 
-## 功能特性
+## Features
 
-- TCP/IP网络通信
-- MQTT消息传输
-- HTTP客户端
-- 网络配置管理
+* TCP/IP network communication
+* MQTT message transmission
+* HTTP client
+* Network configuration management
 
-## 快速开始
+## Quick Start
 
-### 硬件要求
+### Hardware Requirements
 
-- 开发板一块
-- 以太网连接
-- WiFi模块（可选）
-- 网络调试工具
+* One development board
+* Ethernet connection
+* Wi-Fi module (optional)
+* Network debugging tools
 
-### 编译步骤
+### Build Steps
 
-1. 配置网络参数
-2. 设置服务器地址
-3. 编译项目
-4. 下载运行
+1. Configure network parameters
+2. Set the server address
+3. Compile the project
+4. Download and run
 
-### 运行结果
+### Running Result
 
-程序会连接到网络，建立各种网络连接，并进行数据传输测试。
+The program will connect to the network, establish various network connections, and perform data transmission tests.
 
-## 代码结构
+## Code Structure
 
 ```
 component_example/
 ├── src/
-│   ├── main.c              # 主程序
-│   ├── tcp_client.c        # TCP客户端
-│   ├── mqtt_client.c       # MQTT客户端
-│   ├── http_client.c       # HTTP客户端
-│   └── network_config.c    # 网络配置
+│   ├── main.c              # Main program
+│   ├── tcp_client.c        # TCP client
+│   ├── mqtt_client.c       # MQTT client
+│   ├── http_client.c       # HTTP client
+│   └── network_config.c    # Network configuration
 ├── inc/
 │   ├── tcp_client.h
 │   ├── mqtt_client.h
@@ -47,101 +47,101 @@ component_example/
 └── README.md
 ```
 
-## 网络组件
+## Network Components
 
-### TCP客户端
+### TCP Client
 
 ```c
-// 创建TCP连接
+// Create a TCP connection
 tcp_connect("192.168.1.100", 8080);
 
-// 发送数据
+// Send data
 tcp_send("Hello Server\n");
 
-// 接收数据
+// Receive data
 char buffer[1024];
 int len = tcp_receive(buffer, sizeof(buffer));
 ```
 
-### MQTT客户端
+### MQTT Client
 
 ```c
-// 连接MQTT服务器
+// Connect to MQTT server
 mqtt_connect("mqtt.example.com", 1883);
 
-// 订阅主题
+// Subscribe to a topic
 mqtt_subscribe("sensor/data");
 
-// 发布消息
+// Publish a message
 mqtt_publish("device/status", "online");
 
-// 接收消息
+// Receive messages
 void mqtt_message_callback(const char* topic, const char* message) {
-    printf("收到消息: %s -> %s\n", topic, message);
+    printf("Message received: %s -> %s\n", topic, message);
 }
 ```
 
-### HTTP客户端
+### HTTP Client
 
 ```c
-// 发送GET请求
+// Send GET request
 http_get("http://api.example.com/data");
 
-// 发送POST请求
+// Send POST request
 http_post("http://api.example.com/upload", "{\"data\":\"value\"}");
 
-// 处理响应
+// Handle response
 void http_response_callback(int status, const char* body) {
-    printf("HTTP状态: %d\n", status);
-    printf("响应内容: %s\n", body);
+    printf("HTTP Status: %d\n", status);
+    printf("Response Body: %s\n", body);
 }
 ```
 
-### 网络配置
+### Network Configuration
 
 ```c
-// 配置IP地址
+// Configure IP address
 network_set_ip("192.168.1.100");
 
-// 配置网关
+// Configure gateway
 network_set_gateway("192.168.1.1");
 
-// 配置DNS
+// Configure DNS
 network_set_dns("8.8.8.8");
 
-// 启动网络
+// Start network
 network_start();
 ```
 
-## 网络协议
+## Network Protocols
 
-### 支持协议
+### Supported Protocols
 
-- **TCP/UDP** - 传输层协议
-- **HTTP/HTTPS** - 应用层协议
-- **MQTT** - 消息队列协议
-- **CoAP** - 受限应用协议
-- **WebSocket** - 实时通信协议
+* **TCP/UDP** – Transport layer protocols
+* **HTTP/HTTPS** – Application layer protocols
+* **MQTT** – Message queue protocol
+* **CoAP** – Constrained Application Protocol
+* **WebSocket** – Real-time communication protocol
 
-### 安全特性
+### Security Features
 
-- TLS/SSL加密
-- 证书验证
-- 身份认证
-- 数据完整性
+* TLS/SSL encryption
+* Certificate validation
+* Authentication
+* Data integrity
 
-## 注意事项
+## Notes
 
-- 确保网络连接正常
-- 检查服务器地址和端口
-- 验证网络配置参数
-- 观察网络状态指示
+* Ensure the network connection is stable
+* Check the server address and port
+* Verify network configuration parameters
+* Monitor network status indicators
 
-## 故障排除
+## Troubleshooting
 
-常见网络问题及解决方案：
+Common network issues and solutions:
 
-1. **无法连接网络** - 检查IP配置和网关
-2. **TCP连接失败** - 确认服务器地址和端口
-3. **MQTT连接超时** - 检查网络延迟和防火墙
-4. **HTTP请求失败** - 验证URL格式和服务器状态 
+1. **Unable to connect to the network** – Check IP configuration and gateway
+2. **TCP connection failed** – Verify server address and port
+3. **MQTT connection timeout** – Check network latency and firewall
+4. **HTTP request failed** – Validate URL format and server status

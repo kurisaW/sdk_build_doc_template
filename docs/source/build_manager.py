@@ -161,15 +161,28 @@ class BuildManager:
                 subprocess.run([sys.executable, str(embed_script)], 
                              cwd=str(docs_source_in_worktree), check=True)
             
-            # 构建 HTML 文档
-            # 输出到新的路径: source_build/html/<version_url_path>
+            # 构建中文版 HTML 文档
             output_dir = self.build_root / 'html' / version_config.url_path
-            print(f"构建 HTML 文档: {output_dir}")
+            print(f"构建中文版 HTML 文档: {output_dir}")
             subprocess.run([
                 sys.executable, '-m', 'sphinx.cmd.build',
                 '-b', 'html',
+                '-D', 'language=zh_CN',
+                '-D', 'master_doc=index',
                 str(docs_source_in_worktree),
                 str(output_dir)
+            ], check=True)
+            
+            # 构建英文版 HTML 文档
+            output_dir_en = self.build_root / 'html' / f"{version_config.url_path}_en"
+            print(f"构建英文版 HTML 文档: {output_dir_en}")
+            subprocess.run([
+                sys.executable, '-m', 'sphinx.cmd.build',
+                '-b', 'html',
+                '-D', 'language=en_US',
+                '-D', 'master_doc=index_en',
+                str(docs_source_in_worktree),
+                str(output_dir_en)
             ], check=True)
             
             # 生成版本配置（注入项目源目录片段与复制文件规则）
@@ -192,13 +205,15 @@ class BuildManager:
                 pass
 
             self._generate_version_config(output_dir, version_config, projects_dir_web, copy_files_list)
+            self._generate_version_config(output_dir_en, version_config, projects_dir_web, copy_files_list)
 
             # 构建 PDF（仅使用增强版V2生成器，生成中英文两个版本）
             pdf_file = None
             from pdf_generator_enhanced_v2 import PDFGeneratorV2
             print("使用增强版V2 PDF生成器...")
+            
+            # 中文PDF
             pdf_generator = PDFGeneratorV2(output_dir, output_dir / '_static')
-            # 中文
             if pdf_generator.generate_pdf(project_name, language="zh"):
                 static_dir = output_dir / '_static'
                 candidate_pdf = static_dir / f'{project_name}.pdf'
@@ -209,12 +224,14 @@ class BuildManager:
                     print("⚠️  中文PDF文件未找到")
             else:
                 print("⚠️  中文PDF生成失败")
-            # 英文
+            
+            # 英文PDF
             print("正在生成英文版本PDF...")
-            if pdf_generator.generate_pdf(project_name, language="en"):
-                static_dir = output_dir / '_static'
+            pdf_generator_en = PDFGeneratorV2(output_dir_en, output_dir_en / '_static')
+            if pdf_generator_en.generate_pdf(project_name, language="en"):
+                static_dir_en = output_dir_en / '_static'
                 # 英文 PDF 名称使用下划线替换空格
-                en_pdf = static_dir / f"{project_name.replace(' ', '_')}_EN.pdf"
+                en_pdf = static_dir_en / f"{project_name.replace(' ', '_')}_EN.pdf"
                 if en_pdf.exists():
                     print(f"✓ 英文PDF生成成功: {en_pdf}")
                 else:
@@ -261,6 +278,21 @@ class BuildManager:
             try:
                 with open(static_dir / 'project_info.js', 'w', encoding='utf-8') as f_js:
                     f_js.write('window.projectInfo = ' + json.dumps(project_info, ensure_ascii=False) + ';\n')
+            except Exception:
+                pass
+            
+            # 为英文版本也生成项目信息
+            static_dir_en = output_dir_en / '_static'
+            static_dir_en.mkdir(exist_ok=True)
+            project_info_en = {
+                'projectName': project_name,
+                'pdfFileName': f"{project_name.replace(' ', '_')}_EN.pdf"
+            }
+            with open(static_dir_en / 'project_info.json', 'w', encoding='utf-8') as f:
+                json.dump(project_info_en, f, ensure_ascii=False)
+            try:
+                with open(static_dir_en / 'project_info.js', 'w', encoding='utf-8') as f_js:
+                    f_js.write('window.projectInfo = ' + json.dumps(project_info_en, ensure_ascii=False) + ';\n')
             except Exception:
                 pass
             
@@ -579,7 +611,6 @@ class BuildManager:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SDK 文档</title>
-    <meta http-equiv="refresh" content="0; url=./versions/{default_url}/index.html">
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -597,40 +628,47 @@ class BuildManager:
             padding: 40px;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            max-width: 600px;
         }}
-        .spinner {{
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        .language-selector {{
+            margin: 20px 0;
         }}
-        @keyframes spin {{
-            0% {{ transform: rotate(0deg); }}
-            100% {{ transform: rotate(360deg); }}
+        .language-btn {{
+            display: inline-block;
+            margin: 0 10px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }}
+        .language-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
         }}
         h1 {{
-            margin: 0 0 10px 0;
-            font-size: 24px;
+            margin: 0 0 20px 0;
+            font-size: 28px;
         }}
         p {{
-            margin: 0;
+            margin: 10px 0;
             opacity: 0.9;
-        }}
-        a {{
-            color: white;
-            text-decoration: underline;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
         <h1>SDK 文档</h1>
-        <p>正在跳转到文档首页...</p>
-        <p><a href="./versions/{default_url}/index.html">如果页面没有自动跳转，请点击这里</a></p>
+        <p>请选择语言版本：</p>
+        <div class="language-selector">
+            <a href="./{default_url}/index.html" class="language-btn">中文版</a>
+            <a href="./{default_url}_en/index_en.html" class="language-btn">English</a>
+        </div>
+        <p>或访问 <a href="./{default_url}/index.html" style="color: white; text-decoration: underline;">中文版</a> | <a href="./{default_url}_en/index_en.html" style="color: white; text-decoration: underline;">English</a></p>
     </div>
 </body>
 </html>"""

@@ -118,8 +118,8 @@ myst_url_schemes = ('http', 'https', 'mailto', 'ftp')
 
 # 图片路径配置
 html_extra_path = []
-html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css']
-html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js']
+html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css', 'language_toggle.css']
+html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_toggle.js']
 
 # 配置图片路径处理
 html_favicon = None
@@ -147,6 +147,7 @@ html_copy_source = False
 html_sidebars = {
     '**': [
         'globaltoc.html',
+        'localtoc.html',
         'relations.html',
         'sourcelink.html',
         'searchbox.html',

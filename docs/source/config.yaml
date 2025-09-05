@@ -4,8 +4,8 @@ project:
   title: "SDK 文档构建模板"
   description: "这是一个专为SDK文档构建设计的GitHub模板仓库，提供完整的自动化文档构建机制。"
   version: "1.0.0"
-  author: "Your Name"
-  copyright: "2025, Your Company"
+  author: "KurisaW"
+  copyright: "2025, KurisaW"
   language: "zh_CN"
   website: "kurisaw.eu.org"
 

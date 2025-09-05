@@ -2,88 +2,113 @@
 # -*- coding: utf-8 -*-
 """
 索引生成器模块
-负责生成各种索引文件，支持中英双语
+负责生成各种索引文件（支持中英文双语）
 """
 
 from pathlib import Path
 import re
-from typing import Dict, List, Tuple
+import glob
+from typing import Dict, List
 
 
 class IndexGenerator:
     def __init__(self, output_dir: str, file_processor):
         self.output_dir = Path(output_dir)
         self.file_processor = file_processor
-
-    def check_available_languages(self, project: str, category: str) -> Tuple[bool, bool]:
-        """检查项目支持的语言
         
-        Returns:
-            (has_chinese, has_english): 是否有中文和英文文档
-        """
+    def get_projects_dir(self):
+        """从配置中获取项目目录路径"""
         try:
-            # 获取项目在 projects 目录中的实际路径
-            project_path = None
-            projects_dir = getattr(self.file_processor, 'projects_dir', 'projects')
-            
-            # 尝试不同的路径组合
-            possible_paths = [
-                Path(projects_dir) / project,
-                Path(projects_dir) / category / project,
-            ]
-            
-            for path in possible_paths:
-                if path.exists():
-                    project_path = path
-                    break
-            
-            if not project_path:
-                # 回退：检查输出目录中的文件
-                output_project_path = self.output_dir / category / project
-                has_chinese = (output_project_path / "README_zh.html").exists()
-                has_english = (output_project_path / "README.html").exists()
-                return has_chinese, has_english
-            
-            has_chinese = (project_path / "README_zh.md").exists()
-            has_english = (project_path / "README.md").exists()
-            
-            return has_chinese, has_english
-            
-        except Exception as e:
-            print(f"检查语言支持时出错 {project}: {e}")
-            # 回退到默认：假设只有中文
-            return True, False
+            repo_config = self.file_processor.config.get('repository', {})
+            projects_dir_str = repo_config.get('projects_dir', '../../projects')
+            return Path(projects_dir_str)
+        except (AttributeError, KeyError):
+            return Path('../../projects')
+    
+    def find_matching_projects(self, patterns: List[str]) -> List[str]:
+        """根据 patterns 查找匹配的项目"""
+        projects_dir = self.get_projects_dir()
+        if not projects_dir.exists():
+            return []
+        
+        matching_projects = []
+        
+        for pattern in patterns:
+            # 在项目目录中查找匹配的子目录
+            pattern_path = projects_dir / pattern
+            matches = glob.glob(str(pattern_path))
+            for match in matches:
+                project_path = Path(match)
+                if project_path.is_dir():
+                    project_name = project_path.name
+                    if project_name not in matching_projects:
+                        matching_projects.append(project_name)
+        
+        return matching_projects
+    
+    def has_readme_file(self, project_name: str, readme_filename: str) -> bool:
+        """检查项目是否有指定的 README 文件"""
+        projects_dir = self.get_projects_dir()
+        project_path = projects_dir / project_name
+        readme_file = project_path / readme_filename
+        return readme_file.exists()
 
-    def generate_category_index(self, category: str, category_name: str, projects: List[str]) -> str:
-        """生成分类索引页面，支持双语"""
-        title_length = len(category_name.encode('utf-8'))
+    def has_english_docs(self, projects: List[str], category: str) -> bool:
+        """检查分类下是否有英文文档"""
+        for project in projects:
+            if self.has_readme_file(project, 'README.md'):
+                return True
+        return False
+
+    def get_projects_with_lang(self, projects: List[str], category: str, lang: str) -> List[str]:
+        """获取指定语言的项目列表"""
+        readme_filename = 'README.md' if lang == 'en' else 'README_zh.md'
+        result = []
+        for project in projects:
+            if self.has_readme_file(project, readme_filename):
+                result.append(project)
+        return result
+
+    def generate_category_index(self, category: str, category_config: Dict, projects: List[str], lang: str = 'zh') -> str:
+        """生成分类索引页面（支持中英文）"""
+        if lang == 'en':
+            category_name = category_config.get('name_en', category)
+            title_prefix = "SDK"
+            description_prefix = "This section contains"
+            toctree_caption = category_config.get('name_en', category)
+            summary_text = f"These examples demonstrate the {category_name.lower()} of the SDK."
+        else:
+            category_name = category_config.get('name', category)
+            title_prefix = "SDK 的"
+            description_prefix = "这里包含了 SDK 的"
+            toctree_caption = category_name
+            summary_text = f"这些示例展示了 SDK 的 {category_name}。"
+
+        title_length = len(category_name)
         underline = '=' * title_length
         
         content = f"""{category_name}
 {underline}
 
-这里包含了 SDK 的 {category_name}。
+{description_prefix} {category_name}。
 
 .. toctree::
-   :maxdepth: 2
-   :caption: {category_name}
+   :maxdepth: 4
+   :caption: {toctree_caption}
 
 """
+        # 项目已经是经过语言过滤的，直接使用
+        available_projects = projects
+        
         # 读取各项目的显示标题，用于自然排序（数字感知、大小写不敏感）
-        items = []  # (display_title, project_path, project_name, has_chinese, has_english)
-        for project in projects:
-            has_chinese, has_english = self.check_available_languages(project, category)
-            
-            # 优先使用中文标题，如果没有中文则使用英文标题
-            display_title = None
-            if has_chinese:
-                display_title = self.file_processor.get_readme_title(project, category, lang='zh') or project
-            elif has_english:
-                display_title = self.file_processor.get_readme_title(project, category, lang='en') or project
-            else:
+        items = []  # (display_title, project_path)
+        for project in available_projects:
+            # 尝试获取标题，如果获取失败则使用项目名
+            try:
+                display_title = self.file_processor.get_readme_title(project, category, lang) or project
+            except (AttributeError, TypeError):
                 display_title = project
-                
-            items.append((display_title, project, has_chinese, has_english))
+            items.append((display_title, project))
 
         # 自然排序函数
         def natural_key(s: str):
@@ -91,33 +116,41 @@ class IndexGenerator:
 
         items.sort(key=lambda x: natural_key(x[0]))
 
-        # 在 toctree 中生成条目
-        for display_title, project, has_chinese, has_english in items:
-            if has_chinese and has_english:
-                # 双语支持：显示为 "标题 (中文/English)"
-                content += f"   {display_title} (中文) <{project}/README_zh>\n"
-                content += f"   {display_title} (English) <{project}/README>\n"
-            elif has_chinese:
-                # 仅中文
-                content += f"   {display_title} <{project}/README_zh>\n"
-            elif has_english:
-                # 仅英文
-                content += f"   {display_title} <{project}/README>\n"
+        # 在 toctree 中使用"标题 <路径>"形式，展示更友好的名称
+        readme_suffix = 'README' if lang == 'en' else 'README_zh'
+        for display_title, project in items:
+            content += f"   {display_title} <{project}/{readme_suffix}>\n"
         
-        content += f"\n这些示例展示了 SDK 的 {category_name}。\n"
+        content += f"\n{summary_text}\n"
         return content
 
-    def generate_main_index(self, project_info: Dict) -> str:
-        """生成主索引页面"""
-        title = f"欢迎来到 {project_info.get('name', 'SDK')} 文档！"
-        title_length = len(title.encode('utf-8'))
+    def generate_main_index(self, project_info: Dict, lang: str = 'zh', categories: Dict = None) -> str:
+        """生成主索引页面（支持中英文）"""
+        project_name = project_info.get('name', 'SDK')
+        
+        if lang == 'en':
+            title = f"Welcome to {project_name} Documentation!"
+            intro_title = self.file_processor.get_readme_title(None, None, 'en') or "Project Introduction"
+            toc_caption = "Contents"
+            description = project_info.get('description_en', project_info.get('description', 'A brief introduction to the SDK.'))
+        else:
+            title = f"欢迎来到 {project_name} 文档！"
+            intro_title = self.file_processor.get_readme_title(None, None, 'zh') or "项目简介"
+            toc_caption = "目录"
+            description = project_info.get('description', '这里是 SDK 的简要介绍。')
+
+        title_length = len(title)
         underline = '=' * title_length
+        intro_title_length = len(intro_title)
+        intro_underline = '-' * intro_title_length
 
         # 读取 output_structure 以动态生成章节顺序
         output_structure = []
-        # 从 FileProcessor 的配置读取 output_structure
+        # 优先使用 FileProcessor 的属性，其次使用其 config 下的 output_structure
         try:
-            output_structure = ((self.file_processor.config.get('output_structure', [])) or [])
+            output_structure = (getattr(self.file_processor, 'output_structure', []) or [])
+            if not output_structure:
+                output_structure = ((self.file_processor.config.get('output_structure', [])) or [])
         except Exception:
             output_structure = []
         if not output_structure:
@@ -134,25 +167,31 @@ class IndexGenerator:
                 pass
 
         toc_lines = []
+        lang_suffix = '_en' if lang == 'en' else ''
         for cat in output_structure:
-            toc_lines.append(f"   {cat}/index")
+            if categories and cat in categories:
+                cat_cfg = categories.get(cat, {}) or {}
+                display = (cat_cfg.get('name_en') if lang == 'en' else cat_cfg.get('name')) or cat
+                toc_lines.append(f"   {display} <{cat}/index{lang_suffix}>")
+            else:
+                toc_lines.append(f"   {cat}/index{lang_suffix}")
 
         toc_block = "\n".join(toc_lines)
 
-        content = f""".. {project_info.get('name', 'SDK')} documentation master file, created by sphinx-quickstart
+        content = f""".. {project_name} documentation master file, created by sphinx-quickstart
 
 {title}
 {underline}
 
 .. toctree::
-   :maxdepth: 2
-   :caption: 目录
+   :maxdepth: 1
+   :titlesonly:
 
 {toc_block}
 
-项目简介
---------
-{project_info.get('description', '这里是 SDK 的简要介绍。')}
+{intro_title}
+{intro_underline}
+{description}
 """
         return content
 
@@ -166,39 +205,71 @@ class IndexGenerator:
         print(f"已生成索引文件: {file_path}")
 
     def generate_all_indexes(self, categories: Dict, category_mapping: Dict, project_info: Dict):
-        """生成所有索引文件"""
-        # 生成主索引
-        main_index_content = self.generate_main_index(project_info)
+        """生成所有索引文件（中英文）"""
+        # 重新构建 category_mapping，基于配置中的 patterns
+        updated_category_mapping = {}
+        for category, config in categories.items():
+            patterns = config.get('patterns', [])
+            if patterns:
+                matching_projects = self.find_matching_projects(patterns)
+                updated_category_mapping[category] = matching_projects
+            else:
+                # 如果没有 patterns，使用原有的 mapping
+                updated_category_mapping[category] = category_mapping.get(category, [])
+        
+        # 检查是否有英文文档
+        has_any_english = False
+        for category, projects in updated_category_mapping.items():
+            if self.has_english_docs(projects, category):
+                has_any_english = True
+                break
+
+        # 生成中文主索引（始终生成）
+        main_index_content = self.generate_main_index(project_info, 'zh', categories)
         self.write_index_file(main_index_content, self.output_dir / "index.rst")
 
+        # 如果有英文文档，生成英文主索引
+        if has_any_english:
+            main_index_content_en = self.generate_main_index(project_info, 'en', categories)
+            self.write_index_file(main_index_content_en, self.output_dir / "index_en.rst")
+
         # 生成分类索引
-        total_chinese = 0
-        total_english = 0
-        total_bilingual = 0
-        
         for category, config in categories.items():
-            projects = category_mapping.get(category, [])
+            projects = updated_category_mapping.get(category, [])
             if projects:
-                category_name = config.get('name', category)
-                index_content = self.generate_category_index(category, category_name, projects)
-                index_path = self.output_dir / category / "index.rst"
-                self.write_index_file(index_content, index_path)
-                
-                # 统计语言支持情况
-                for project in projects:
-                    has_chinese, has_english = self.check_available_languages(project, category)
-                    if has_chinese and has_english:
-                        total_bilingual += 1
-                    elif has_chinese:
-                        total_chinese += 1
-                    elif has_english:
-                        total_english += 1
+                # 生成中文分类索引（始终生成）
+                zh_projects = self.get_projects_with_lang(projects, category, 'zh')
+                if zh_projects:
+                    index_content = self.generate_category_index(category, config, zh_projects, 'zh')
+                    index_path = self.output_dir / category / "index.rst"
+                    self.write_index_file(index_content, index_path)
+
+                # 如果有英文文档，生成英文分类索引
+                en_projects = self.get_projects_with_lang(projects, category, 'en')
+                if en_projects:
+                    index_content_en = self.generate_category_index(category, config, en_projects, 'en')
+                    index_path_en = self.output_dir / category / "index_en.rst"
+                    self.write_index_file(index_content_en, index_path_en)
 
         # 末尾总结日志
-        mode = getattr(self, 'structure_mode', 'hardcoded')
-        if mode == 'dynamic':
-            print("索引结构生成模式: 动态 (来自 config.yaml:generation.output_structure)")
+        mode = getattr(self, 'structure_mode', 'unknown')
+        if mode == 'from_config':
+            print("索引结构生成模式: 来自配置文件 (generation.output_structure)")
+        elif mode == 'from_categories':
+            print("索引结构生成模式: 来自分类配置 (categories)")
+        elif mode == 'empty':
+            print("索引结构生成模式: 空结构 (未找到配置)")
         else:
-            print("索引结构生成模式: 硬编码回退 (未在 config.yaml 中找到 output_structure)")
+            print(f"索引结构生成模式: {mode}")
+        
+        if has_any_english:
+            print("检测到英文文档，已生成双语索引文件")
+        else:
+            print("未检测到英文文档，仅生成中文索引文件")
             
-        print(f"语言支持统计: 双语文档 {total_bilingual} 个, 仅中文 {total_chinese} 个, 仅英文 {total_english} 个")
+        # 打印项目发现信息
+        for category, projects in updated_category_mapping.items():
+            if projects:
+                print(f"分类 '{category}' 发现 {len(projects)} 个项目: {', '.join(projects)}")
+            else:
+                print(f"分类 '{category}' 未发现项目")

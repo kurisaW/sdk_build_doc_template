@@ -38,6 +38,7 @@
       if (location && location.protocol === 'file:') return '';
     }
     if (!base) return '';
+    
     var branch = (window.versionInfo && window.versionInfo.branch) ? window.versionInfo.branch : 'master';
     // 当前页面在版本目录后的相对路径
     var path = location.pathname;
@@ -61,21 +62,42 @@
     }
     // 去掉 .html 后缀
     var htmlName = mapped.split('/').pop();
-    var base = htmlName.replace(/\.html$/i, '');
+    var baseName = htmlName.replace(/\.html$/i, '');
     // 依据 copy_files 中的候选名推断源文件名优先级（README_zh.md、README.md 等）
     // 回退规则：
-    // 1) 如果 base 匹配 README_zh/README 等，按列表顺序尝试；
+    // 1) 如果 baseName 匹配 README_zh/README 等，按列表顺序尝试；
     // 2) 否则将 .html 改为 .md
     var candidates = [];
-    if (/^readme(_zh)?$/i.test(base)) {
+    if (/^readme(_zh)?$/i.test(baseName)) {
       var normalized = copyFiles.map(function(n){ return String(n || '').toLowerCase(); });
-      // 常见文件名优先
-      ['readme_zh.md','readme.md'].forEach(function(name){ if (normalized.indexOf(name) >= 0 && candidates.indexOf(name) < 0) candidates.push(name); });
-      // 追加其余列表中文件名（保持顺序）
-      copyFiles.forEach(function(n){ var ln = String(n||'').toLowerCase(); if (candidates.indexOf(ln) < 0) candidates.push(ln); });
+      // 根据当前页面文件名匹配对应的源文件
+      var targetFile = '';
+      if (baseName.toLowerCase() === 'readme_zh') {
+        targetFile = 'README_zh.md';
+      } else if (baseName.toLowerCase() === 'readme') {
+        targetFile = 'README.md';
+      }
+      
+      // 如果找到匹配的目标文件且存在于 copyFiles 中，优先使用
+      if (targetFile && normalized.indexOf(targetFile.toLowerCase()) >= 0) {
+        candidates.push(targetFile);
+      } else {
+        // 回退到原有逻辑：常见文件名优先，保持原始大小写
+        ['README_zh.md','README.md'].forEach(function(name){ 
+          var lowerName = name.toLowerCase();
+          if (normalized.indexOf(lowerName) >= 0 && candidates.indexOf(name) < 0) candidates.push(name); 
+        });
+      }
+      
+      // 追加其余列表中文件名（保持原始大小写）
+      copyFiles.forEach(function(n){ 
+        var fileName = String(n || '');
+        var ln = fileName.toLowerCase(); 
+        if (candidates.map(function(c){return c.toLowerCase();}).indexOf(ln) < 0) candidates.push(fileName); 
+      });
     }
     if (candidates.length === 0) {
-      candidates = [base + '.md'];
+      candidates = [baseName + '.md'];
     }
     // 组装目录 + 源文件名
     var dir = mapped.substring(0, mapped.lastIndexOf('/'));
@@ -84,8 +106,23 @@
     if (projectsDir) {
       mapped = projectsDir.replace(/\/+$/,'') + '/' + mapped.replace(/^\//,'');
     }
-    // 组装最终编辑链接
-    var editUrl = base + encodeURIComponent(branch) + '/' + mapped;
+    
+    // 修复：正确构建 GitHub 编辑链接
+    // 从 base URL 中提取 user 和 repo 信息
+    // base 格式应该是类似 "https://github.com/user/repo/" 或 "github.com/user/repo/"
+    var match = base.match(/github\.com\/([^\/]+)\/([^\/]+)\/?/i);
+    if (!match) {
+      console.warn('无法从 base URL 中解析 GitHub 用户名和仓库名:', base);
+      return '';
+    }
+    
+    var user = match[1];
+    var repo = match[2];
+    
+    // 构建正确的 GitHub 编辑 URL 格式
+    // https://github.com/$user/$repo/edit/$branch/$file_path
+    var editUrl = 'https://github.com/' + user + '/' + repo + '/edit/' + branch + '/' + mapped;
+    
     return editUrl;
   }
 
@@ -139,4 +176,3 @@
 
   init();
 })();
-

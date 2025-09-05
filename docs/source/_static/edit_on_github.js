@@ -22,6 +22,40 @@
     }
   }
 
+  function isEditablePage(){
+    // 检查当前页面是否对应 Markdown 文件
+    var path = location.pathname;
+    var urlPath = (window.versionInfo && window.versionInfo.url_path) ? window.versionInfo.url_path : 'latest';
+    var marker = '/' + urlPath + '/';
+    var idx = path.indexOf(marker);
+    
+    if (idx < 0) return false; // 不在文档路径中
+    
+    var relativePath = path.substring(idx + marker.length);
+    
+    // 过滤掉索引页面和特殊页面
+    if (!relativePath || relativePath === '' || relativePath === 'index.html') return false;
+    if (relativePath.match(/^(search|genindex|modindex)\.html$/)) return false;
+    if (relativePath.match(/\/(index\.html)?$/)) return false; // 目录索引页
+    
+    // 检查是否在项目目录结构中（包含至少两级路径，如 basic/project_name/README.html）
+    var pathParts = relativePath.split('/');
+    if (pathParts.length < 2) return false;
+    
+    // 检查对应的源文件是否是 Markdown 文件
+    // 通过检查 copyFiles 中是否有对应的 .md 文件来判断
+    var copyFiles = (window.versionInfo && window.versionInfo.copyFiles) ? window.versionInfo.copyFiles : [];
+    var fileName = pathParts[pathParts.length - 1].replace(/\.html$/i, '').toLowerCase();
+    
+    // 检查 copyFiles 中是否有对应的 .md 文件
+    var hasMarkdownFile = copyFiles.some(function(file) {
+      var fileBaseName = String(file || '').replace(/\.md$/i, '').toLowerCase();
+      return fileBaseName === fileName;
+    });
+    
+    return hasMarkdownFile;
+  }
+
   function buildEditUrl(){
     var base = getMetaEditBase();
     // 规范化 base，确保为绝对 URL，避免生成相对路径
@@ -127,6 +161,9 @@
   }
 
   function insertButton(){
+    // 首先检查是否是可编辑的文档页面
+    if (!isEditablePage()) return;
+    
     var url = buildEditUrl();
     if (!url) return;
 

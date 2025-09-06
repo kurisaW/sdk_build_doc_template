@@ -30,13 +30,9 @@
      */
     function detectCurrentLanguage() {
         const htmlLang = document.documentElement.getAttribute('lang');
-        if (htmlLang === 'zh') return 'chinese';
-        if (htmlLang === 'en') return 'english';
-        
-        // 回退到URL检测
         const currentPath = window.location.pathname;
-        if (currentPath.endsWith('_zh.html')) return 'chinese';
-        if (currentPath.endsWith('.html')) return 'english';
+        if ((htmlLang === 'zh-CN') && (currentPath.endsWith('_zh.html'))) return 'chinese';
+        if ((htmlLang === 'en') && (currentPath.endsWith('.html'))) return 'english';
         
         return 'english';
     }
@@ -61,15 +57,17 @@
         
         // 创建语言切换UI - "中文 | English" 格式
         const languageSwitchHTML = `
-            <div class="language-switch" id="language-switch">
-                <div class="language-switch__container">
-                    <button class="language-switch__option" data-lang="chinese" aria-label="切换到中文">
-                        中文
-                    </button>
-                    <span class="language-switch__separator">|</span>
-                    <button class="language-switch__option" data-lang="english" aria-label="Switch to English">
-                        English
-                    </button>
+            <div class="language-switch-container">
+                <div class="language-switch" id="language-switch">
+                    <div class="language-switch__container">
+                        <button class="language-switch__option" data-lang="chinese" aria-label="切换到中文">
+                            中文
+                        </button>
+                        <span class="language-switch__separator">|</span>
+                        <button class="language-switch__option" data-lang="english" aria-label="Switch to English">
+                            English
+                        </button>
+                    </div>
                 </div>
             </div>
         `;

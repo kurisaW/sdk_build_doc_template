@@ -40,8 +40,8 @@ class IndexGenerator:
             if not project_path:
                 # 回退：检查输出目录中的文件
                 output_project_path = self.output_dir / category / project
-                has_chinese = (output_project_path / "README_zh.html").exists()
-                has_english = (output_project_path / "README.html").exists()
+                has_chinese = (output_project_path / "README_zh.md").exists()
+                has_english = (output_project_path / "README.md").exists()
                 return has_chinese, has_english
             
             has_chinese = (project_path / "README_zh.md").exists()
@@ -54,18 +54,23 @@ class IndexGenerator:
             # 回退到默认：假设只有中文
             return True, False
 
-    def generate_category_index(self, category: str, category_name: str, projects: List[str]) -> str:
+    def generate_category_index(self, category: str, category_name: str, projects: List[str], language: str = 'zh') -> str:
         """生成分类索引页面，支持双语"""
         title_length = len(category_name.encode('utf-8'))
         underline = '=' * title_length
         
+        if language == 'en':
+            description = f"This section contains SDK {category_name.lower()}."
+        else:
+            description = f"这里包含了 SDK 的 {category_name}。"
+        
         content = f"""{category_name}
 {underline}
 
-这里包含了 SDK 的 {category_name}。
+{description}
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: {category_name}
 
 """
@@ -74,12 +79,16 @@ class IndexGenerator:
         for project in projects:
             has_chinese, has_english = self.check_available_languages(project, category)
             
-            # 优先使用中文标题，如果没有中文则使用英文标题
+            # 根据语言选择标题
             display_title = None
-            if has_chinese:
-                display_title = self.file_processor.get_readme_title(project, category, lang='zh') or project
+            if language == 'en' and has_english:
+                display_title = self.file_processor.get_readme_title(project, category, 'en') or project
+            elif language == 'zh' and has_chinese:
+                display_title = self.file_processor.get_readme_title(project, category, 'zh') or project
+            elif has_chinese:
+                display_title = self.file_processor.get_readme_title(project, category, 'zh') or project
             elif has_english:
-                display_title = self.file_processor.get_readme_title(project, category, lang='en') or project
+                display_title = self.file_processor.get_readme_title(project, category, 'en') or project
             else:
                 display_title = project
                 
@@ -93,23 +102,33 @@ class IndexGenerator:
 
         # 在 toctree 中生成条目
         for display_title, project, has_chinese, has_english in items:
-            if has_chinese and has_english:
-                # 双语支持：显示为 "标题 (中文/English)"
-                content += f"   {display_title} (中文) <{project}/README_zh>\n"
-                content += f"   {display_title} (English) <{project}/README>\n"
-            elif has_chinese:
-                # 仅中文
-                content += f"   {display_title} <{project}/README_zh>\n"
-            elif has_english:
-                # 仅英文
-                content += f"   {display_title} <{project}/README>\n"
+            if language == 'en':
+                # 英文版：只显示英文链接
+                if has_english:
+                    content += f"   {display_title} <{project}/README.md>\n"
+                elif has_chinese:
+                    # 如果没有英文版，回退到中文版
+                    content += f"   {display_title} <{project}/README_zh.md>\n"
+            else:
+                # 中文版：只显示中文链接
+                if has_chinese:
+                    content += f"   {display_title} <{project}/README_zh.md>\n"
+                elif has_english:
+                    # 如果没有中文版，回退到英文版
+                    content += f"   {display_title} <{project}/README.md>\n"
         
-        content += f"\n这些示例展示了 SDK 的 {category_name}。\n"
+        if language == 'en':
+            content += f"\nThese examples demonstrate SDK {category_name.lower()}.\n"
+        else:
+            content += f"\n这些示例展示了 SDK 的 {category_name}。\n"
         return content
 
-    def generate_main_index(self, project_info: Dict) -> str:
+    def generate_main_index(self, project_info: Dict, language: str = 'zh') -> str:
         """生成主索引页面"""
-        title = f"欢迎来到 {project_info.get('name', 'SDK')} 文档！"
+        if language == 'en':
+            title = f"Welcome to {project_info.get('name', 'SDK')} Documentation!"
+        else:
+            title = f"欢迎来到 {project_info.get('name', 'SDK')} 文档！"
         title_length = len(title.encode('utf-8'))
         underline = '=' * title_length
 
@@ -135,7 +154,12 @@ class IndexGenerator:
 
         toc_lines = []
         for cat in output_structure:
-            toc_lines.append(f"   {cat}/index")
+            if language == 'en':
+                # 英文版：引用无后缀的index文件
+                toc_lines.append(f"   {cat}/index")
+            else:
+                # 中文版：引用带_zh后缀的index文件
+                toc_lines.append(f"   {cat}/index_zh")
 
         toc_block = "\n".join(toc_lines)
 
@@ -145,14 +169,14 @@ class IndexGenerator:
 {underline}
 
 .. toctree::
-   :maxdepth: 2
-   :caption: 目录
+   :maxdepth: 4
+   :caption: {'Contents' if language == 'en' else '目录'}
 
 {toc_block}
 
-项目简介
+{'Project Overview' if language == 'en' else '项目简介'}
 --------
-{project_info.get('description', '这里是 SDK 的简要介绍。')}
+{project_info.get('description', '这里是 SDK 的简要介绍。' if language == 'zh' else 'This is a brief introduction to the SDK.')}
 """
         return content
 
@@ -167,9 +191,13 @@ class IndexGenerator:
 
     def generate_all_indexes(self, categories: Dict, category_mapping: Dict, project_info: Dict):
         """生成所有索引文件"""
-        # 生成主索引
-        main_index_content = self.generate_main_index(project_info)
-        self.write_index_file(main_index_content, self.output_dir / "index.rst")
+        # 生成主索引（中文版）- 使用 _zh 后缀
+        main_index_content = self.generate_main_index(project_info, 'zh')
+        self.write_index_file(main_index_content, self.output_dir / "index_zh.rst")
+        
+        # 生成主索引（英文版）- 无后缀表示英文
+        main_index_content_en = self.generate_main_index(project_info, 'en')
+        self.write_index_file(main_index_content_en, self.output_dir / "index.rst")
 
         # 生成分类索引
         total_chinese = 0
@@ -179,10 +207,17 @@ class IndexGenerator:
         for category, config in categories.items():
             projects = category_mapping.get(category, [])
             if projects:
-                category_name = config.get('name', category)
-                index_content = self.generate_category_index(category, category_name, projects)
-                index_path = self.output_dir / category / "index.rst"
-                self.write_index_file(index_content, index_path)
+                # 生成中文版索引 - 使用 _zh 后缀
+                category_name_zh = config.get('name', category)
+                index_content_zh = self.generate_category_index(category, category_name_zh, projects, 'zh')
+                index_path_zh = self.output_dir / category / "index_zh.rst"
+                self.write_index_file(index_content_zh, index_path_zh)
+                
+                # 生成英文版索引 - 无后缀表示英文
+                category_name_en = config.get('name_en', category)
+                index_content_en = self.generate_category_index(category, category_name_en, projects, 'en')
+                index_path_en = self.output_dir / category / "index.rst"
+                self.write_index_file(index_content_en, index_path_en)
                 
                 # 统计语言支持情况
                 for project in projects:

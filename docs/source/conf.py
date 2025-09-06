@@ -37,7 +37,28 @@ author = project_config.get('author', 'unknown')
 
 # The full version, including alpha/beta/rc tags
 release = project_config.get('version', '0.0.1')
-master_doc = 'index'
+# 动态设置主文档：优先使用环境变量，否则使用默认值
+import os
+master_doc = os.environ.get('SPHINX_MASTER_DOC', 'index_zh')
+
+# 如果通过命令行参数指定了master_doc，则使用命令行参数的值
+# 这需要在构建脚本中通过环境变量传递
+if 'SPHINX_MASTER_DOC_OVERRIDE' in os.environ:
+    master_doc = os.environ['SPHINX_MASTER_DOC_OVERRIDE']
+
+# 根据环境变量设置文档排除模式
+exclude_patterns = []
+if 'SPHINX_EXCLUDE_PATTERNS' in os.environ:
+    exclude_patterns = os.environ['SPHINX_EXCLUDE_PATTERNS'].split(',')
+    exclude_patterns = [pattern.strip() for pattern in exclude_patterns if pattern.strip()]
+
+# 根据环境变量设置语言
+language = os.environ.get('SPHINX_LANGUAGE', 'zh_CN')
+
+# 调试信息
+print(f"DEBUG: master_doc = {master_doc}")
+print(f"DEBUG: language = {language}")
+print(f"DEBUG: exclude_patterns = {exclude_patterns}")
 
 # -- General configuration ---------------------------------------------------
 
@@ -59,7 +80,8 @@ templates_path = ['_templates']
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = project_config.get('language', 'zh_CN')
+# 优先使用环境变量，然后使用配置文件，最后使用默认值
+language = os.environ.get('SPHINX_LANGUAGE', project_config.get('language', 'zh_CN'))
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -118,8 +140,8 @@ myst_url_schemes = ('http', 'https', 'mailto', 'ftp')
 
 # 图片路径配置
 html_extra_path = []
-html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css']
-html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js']
+html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css', 'language_switch.css']
+html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_switch.js']
 
 # 配置图片路径处理
 html_favicon = None

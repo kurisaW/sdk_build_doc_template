@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import argparse
 import platform
+import re
 from pathlib import Path
 from typing import List, Dict, Optional, Union
 from shutil import which
@@ -161,16 +162,48 @@ class BuildManager:
                 subprocess.run([sys.executable, str(embed_script)], 
                              cwd=str(docs_source_in_worktree), check=True)
             
-            # 构建 HTML 文档
-            # 输出到新的路径: source_build/html/<version_url_path>
+            # 构建 HTML 文档 - 最终方案：双构建+正确合并
             output_dir = self.build_root / 'html' / version_config.url_path
             print(f"构建 HTML 文档: {output_dir}")
+            
+            # 构建中文版文档
+            print("构建中文版文档...")
+            zh_output_dir = output_dir / 'zh'
+            zh_env = os.environ.copy()
+            zh_env['SPHINX_MASTER_DOC'] = 'index_zh'
+            zh_env['SPHINX_MASTER_DOC_OVERRIDE'] = 'index_zh'
+            zh_env['SPHINX_LANGUAGE'] = 'zh_CN'
+            # 中文版构建时排除英文文档
+            zh_env['SPHINX_EXCLUDE_PATTERNS'] = '*.md, index.rst'
             subprocess.run([
                 sys.executable, '-m', 'sphinx.cmd.build',
                 '-b', 'html',
+                '-D', 'language=zh_CN',
                 str(docs_source_in_worktree),
-                str(output_dir)
-            ], check=True)
+                str(zh_output_dir)
+            ], check=True, env=zh_env)
+            
+            # 构建英文版文档
+            print("构建英文版文档...")
+            en_output_dir = output_dir / 'en'
+            en_env = os.environ.copy()
+            en_env['SPHINX_MASTER_DOC'] = 'index'
+            en_env['SPHINX_MASTER_DOC_OVERRIDE'] = 'index'
+            en_env['SPHINX_LANGUAGE'] = 'en'
+            # 英文版构建时排除中文文档
+            en_env['SPHINX_EXCLUDE_PATTERNS'] = '*_zh.md, *_zh.rst'
+            subprocess.run([
+                sys.executable, '-m', 'sphinx.cmd.build',
+                '-b', 'html',
+                '-D', 'master_doc=index',
+                '-D', 'language=en',
+                str(docs_source_in_worktree),
+                str(en_output_dir)
+            ], check=True, env=en_env)
+            
+            # 合并文档集到统一目录
+            print("合并文档集...")
+            self._merge_docs_final(zh_output_dir, en_output_dir, output_dir)
             
             # 生成版本配置（注入项目源目录片段与复制文件规则）
             # 从 docs/source/config.yaml 读取 repository.projects_dir，并转换为仓库内相对路径片段
@@ -332,6 +365,92 @@ class BuildManager:
         
         print(f"✓ 生成版本配置文件: {version_config_file}")
         print(f"✓ 生成静态配置文件: {static_config_file}")
+    
+    
+    def _merge_docs_final(self, zh_dir: Path, en_dir: Path, output_dir: Path):
+        """最终合并中英文文档集"""
+        import shutil
+        
+        # 创建输出目录
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 第一步：复制英文版文档（保持原名，无后缀表示英文）
+        print("复制英文版文档...")
+        for item in en_dir.iterdir():
+            if item.is_file():
+                if item.name.endswith('.html'):
+                    # HTML文件保持原名（无后缀表示英文）
+                    shutil.copy2(item, output_dir / item.name)
+                else:
+                    # 非HTML文件直接复制
+                    shutil.copy2(item, output_dir / item.name)
+            elif item.is_dir():
+                # 处理子目录
+                target_dir = output_dir / item.name
+                target_dir.mkdir(exist_ok=True)
+                for subitem in item.iterdir():
+                    if subitem.is_file():
+                        if subitem.name.endswith('.html'):
+                            # HTML文件保持原名（无后缀表示英文）
+                            shutil.copy2(subitem, target_dir / subitem.name)
+                        else:
+                            # 非HTML文件直接复制
+                            shutil.copy2(subitem, target_dir / subitem.name)
+                    elif subitem.is_dir():
+                        # 递归处理子目录
+                        shutil.copytree(subitem, target_dir / subitem.name, dirs_exist_ok=True)
+        
+        # 第二步：复制中文版文档（添加_zh后缀）
+        print("复制中文版文档...")
+        for item in zh_dir.iterdir():
+            if item.is_file():
+                if item.name.endswith('.html'):
+                    # HTML文件添加_zh后缀，但避免重复添加
+                    if item.stem.endswith('_zh'):
+                        # 如果文件名已经以_zh结尾，直接使用
+                        new_name = item.name
+                    else:
+                        # 否则添加_zh后缀
+                        new_name = item.stem + '_zh.html'
+                    # 检查目标文件是否已存在（英文版），如果存在则跳过
+                    target_file = output_dir / new_name
+                    if not target_file.exists():
+                        shutil.copy2(item, target_file)
+                else:
+                    # 非HTML文件直接复制
+                    shutil.copy2(item, output_dir / item.name)
+            elif item.is_dir():
+                # 处理子目录
+                target_dir = output_dir / item.name
+                target_dir.mkdir(exist_ok=True)
+                for subitem in item.iterdir():
+                    if subitem.is_file():
+                        if subitem.name.endswith('.html'):
+                            # HTML文件添加_zh后缀，但避免重复添加
+                            if subitem.stem.endswith('_zh'):
+                                # 如果文件名已经以_zh结尾，直接使用
+                                new_name = subitem.name
+                            else:
+                                # 否则添加_zh后缀
+                                new_name = subitem.stem + '_zh.html'
+                            # 检查目标文件是否已存在（英文版），如果存在则跳过
+                            target_file = target_dir / new_name
+                            if not target_file.exists():
+                                shutil.copy2(subitem, target_file)
+                        else:
+                            # 非HTML文件直接复制
+                            shutil.copy2(subitem, target_dir / subitem.name)
+                    elif subitem.is_dir():
+                        # 递归处理子目录
+                        shutil.copytree(subitem, target_dir / subitem.name, dirs_exist_ok=True)
+        
+        # 清理临时目录
+        shutil.rmtree(zh_dir, ignore_errors=True)
+        shutil.rmtree(en_dir, ignore_errors=True)
+        
+        print("✓ 文档集合并完成")
+        print(f"  - 中文版文件：添加 _zh 后缀（如 index_zh.html, README_zh.html）")
+        print(f"  - 英文版文件：保持原名（如 index.html, README.html）")
     
     def copy_build_result(self, worktree_path: Path, version_config: VersionConfig):
         """就地构建后无需复制，保持接口以兼容调用方"""

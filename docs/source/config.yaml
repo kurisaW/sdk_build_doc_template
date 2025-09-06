@@ -6,7 +6,7 @@ project:
   version: "1.0.0"
   author: "Your Name"
   copyright: "2025, Your Company"
-  language: "zh_CN"
+  # language: "zh_CN"  # 注释掉固定语言配置，支持中英文双语
   website: "kurisaw.eu.org"
 
 # 仓库配置

@@ -6,13 +6,6 @@
       "branch": "main",
       "url_path": "latest",
       "description": "最新开发版本"
-    },
-    {
-      "name": "v1.0",
-      "display_name": "v1.0",
-      "branch": "v1.0",
-      "url_path": "v1.0",
-      "description": "v1.0"
     }
   ],
   "default_version": "main",

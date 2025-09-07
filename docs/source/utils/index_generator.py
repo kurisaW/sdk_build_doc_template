@@ -105,17 +105,17 @@ class IndexGenerator:
             if language == 'en':
                 # 英文版：只显示英文链接
                 if has_english:
-                    content += f"   {display_title} <{project}/README.md>\n"
+                    content += f"   {display_title} <{project}/README>\n"
                 elif has_chinese:
                     # 如果没有英文版，回退到中文版
-                    content += f"   {display_title} <{project}/README_zh.md>\n"
+                    content += f"   {display_title} <{project}/README_zh>\n"
             else:
                 # 中文版：只显示中文链接
                 if has_chinese:
-                    content += f"   {display_title} <{project}/README_zh.md>\n"
+                    content += f"   {display_title} <{project}/README_zh>\n"
                 elif has_english:
                     # 如果没有中文版，回退到英文版
-                    content += f"   {display_title} <{project}/README.md>\n"
+                    content += f"   {display_title} <{project}/README>\n"
         
         if language == 'en':
             content += f"\nThese examples demonstrate SDK {category_name.lower()}.\n"

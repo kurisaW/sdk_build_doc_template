@@ -179,15 +179,82 @@ class BuildManager:
             zh_env['SPHINX_MASTER_DOC'] = zh_config['index_filename'].replace('.rst', '')
             zh_env['SPHINX_MASTER_DOC_OVERRIDE'] = zh_config['index_filename'].replace('.rst', '')
             zh_env['SPHINX_LANGUAGE'] = 'zh_CN'
+            # 确保中文locale环境变量
+            zh_env['LANG'] = 'zh_CN.UTF-8'
+            zh_env['LC_ALL'] = 'zh_CN.UTF-8'
+            zh_env['LC_CTYPE'] = 'zh_CN.UTF-8'
+            
+            # 中文版构建时临时移动英文版文件，避免Sphinx读取
+            moved_files = []
+            try:
+                # 从配置文件读取分类列表
+                cfg_path = docs_source_in_worktree / 'config.yaml'
+                if cfg_path.exists():
+                    with open(cfg_path, 'r', encoding='utf-8') as f:
+                        cfg = yaml.safe_load(f) or {}
+                        categories = cfg.get('generation', {}).get('output_structure', [])
+                        for category in categories:
+                            # 临时移动英文版分类索引文件
+                            en_index_file = docs_source_in_worktree / category / 'index.rst'
+                            if en_index_file.exists():
+                                temp_file = en_index_file.with_suffix('.rst.temp')
+                                en_index_file.rename(temp_file)
+                                moved_files.append((en_index_file, temp_file))
+                                print(f"  临时移动英文版文件: {en_index_file} -> {temp_file}")
+                
+                # 临时移动英文版主索引文件
+                en_main_index = docs_source_in_worktree / 'index.rst'
+                if en_main_index.exists():
+                    temp_file = en_main_index.with_suffix('.rst.temp')
+                    en_main_index.rename(temp_file)
+                    moved_files.append((en_main_index, temp_file))
+                    print(f"  临时移动英文版文件: {en_main_index} -> {temp_file}")
+                    
+            except Exception as e:
+                print(f"  警告: 移动英文版文件时出错: {e}")
+            
             # 中文版构建时排除英文文档
-            zh_env['SPHINX_EXCLUDE_PATTERNS'] = '*.md, index.rst'
+            zh_env['SPHINX_EXCLUDE_PATTERNS'] = '*.md'
+            
+            print(f"中文版构建环境变量:")
+            print(f"  LANG: {zh_env.get('LANG', 'N/A')}")
+            print(f"  LC_ALL: {zh_env.get('LC_ALL', 'N/A')}")
+            print(f"  SPHINX_LANGUAGE: {zh_env.get('SPHINX_LANGUAGE', 'N/A')}")
+            print(f"  SPHINX_MASTER_DOC: {zh_env.get('SPHINX_MASTER_DOC', 'N/A')}")
+            print(f"  SPHINX_EXCLUDE_PATTERNS: {zh_env.get('SPHINX_EXCLUDE_PATTERNS', 'N/A')}")
+            print(f"  索引文件名: {zh_config['index_filename']}")
+            
             subprocess.run([
                 sys.executable, '-m', 'sphinx.cmd.build',
                 '-b', 'html',
                 '-D', 'language=zh_CN',
+                '-D', 'master_doc=' + zh_config['index_filename'].replace('.rst', ''),
                 str(docs_source_in_worktree),
                 str(zh_output_dir)
             ], check=True, env=zh_env)
+            
+            # 恢复临时移动的英文版文件
+            for original_file, temp_file in moved_files:
+                try:
+                    if temp_file.exists():
+                        temp_file.rename(original_file)
+                        print(f"  恢复英文版文件: {temp_file} -> {original_file}")
+                except Exception as e:
+                    print(f"  警告: 恢复文件时出错 {temp_file}: {e}")
+            
+            # 检查翻译文件是否生成
+            translations_file = zh_output_dir / '_static' / 'translations.js'
+            if translations_file.exists():
+                print(f"✓ 中文翻译文件已生成: {translations_file}")
+                # 检查翻译文件内容
+                with open(translations_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if 'zh_Hans_CN' in content or 'zh_CN' in content:
+                        print("✓ 翻译文件包含中文locale信息")
+                    else:
+                        print("⚠️  翻译文件可能不包含正确的中文locale信息")
+            else:
+                print("⚠️  中文翻译文件未生成")
             
             # 构建英文版文档
             print("构建英文版文档...")
@@ -197,8 +264,49 @@ class BuildManager:
             en_env['SPHINX_MASTER_DOC'] = en_config['index_filename'].replace('.rst', '')
             en_env['SPHINX_MASTER_DOC_OVERRIDE'] = en_config['index_filename'].replace('.rst', '')
             en_env['SPHINX_LANGUAGE'] = 'en'
+            # 确保英文locale环境变量
+            en_env['LANG'] = 'en_US.UTF-8'
+            en_env['LC_ALL'] = 'en_US.UTF-8'
+            en_env['LC_CTYPE'] = 'en_US.UTF-8'
+            
+            # 英文版构建时临时移动中文版文件，避免Sphinx读取
+            moved_files_en = []
+            try:
+                # 从配置文件读取分类列表
+                cfg_path = docs_source_in_worktree / 'config.yaml'
+                if cfg_path.exists():
+                    with open(cfg_path, 'r', encoding='utf-8') as f:
+                        cfg = yaml.safe_load(f) or {}
+                        categories = cfg.get('generation', {}).get('output_structure', [])
+                        for category in categories:
+                            # 临时移动中文版分类索引文件
+                            zh_index_file = docs_source_in_worktree / category / 'index_zh.rst'
+                            if zh_index_file.exists():
+                                temp_file = zh_index_file.with_suffix('.rst.temp')
+                                zh_index_file.rename(temp_file)
+                                moved_files_en.append((zh_index_file, temp_file))
+                                print(f"  临时移动中文版文件: {zh_index_file} -> {temp_file}")
+                
+                # 临时移动中文版主索引文件
+                zh_main_index = docs_source_in_worktree / 'index_zh.rst'
+                if zh_main_index.exists():
+                    temp_file = zh_main_index.with_suffix('.rst.temp')
+                    zh_main_index.rename(temp_file)
+                    moved_files_en.append((zh_main_index, temp_file))
+                    print(f"  临时移动中文版文件: {zh_main_index} -> {temp_file}")
+                    
+            except Exception as e:
+                print(f"  警告: 移动中文版文件时出错: {e}")
+            
             # 英文版构建时排除中文文档
-            en_env['SPHINX_EXCLUDE_PATTERNS'] = '*_zh.md, *_zh.rst'
+            en_env['SPHINX_EXCLUDE_PATTERNS'] = '*_zh.md'
+            
+            print(f"英文版构建环境变量:")
+            print(f"  LANG: {en_env.get('LANG', 'N/A')}")
+            print(f"  LC_ALL: {en_env.get('LC_ALL', 'N/A')}")
+            print(f"  SPHINX_LANGUAGE: {en_env.get('SPHINX_LANGUAGE', 'N/A')}")
+            print(f"  SPHINX_EXCLUDE_PATTERNS: {en_env.get('SPHINX_EXCLUDE_PATTERNS', 'N/A')}")
+            
             subprocess.run([
                 sys.executable, '-m', 'sphinx.cmd.build',
                 '-b', 'html',
@@ -207,6 +315,51 @@ class BuildManager:
                 str(docs_source_in_worktree),
                 str(en_output_dir)
             ], check=True, env=en_env)
+            
+            # 恢复临时移动的中文版文件
+            for original_file, temp_file in moved_files_en:
+                try:
+                    if temp_file.exists():
+                        temp_file.rename(original_file)
+                        print(f"  恢复中文版文件: {temp_file} -> {original_file}")
+                except Exception as e:
+                    print(f"  警告: 恢复文件时出错 {temp_file}: {e}")
+            
+            # 检查翻译文件是否生成，如果没有则手动创建
+            translations_file = en_output_dir / '_static' / 'translations.js'
+            if translations_file.exists():
+                print(f"✓ 英文翻译文件已生成: {translations_file}")
+                # 检查翻译文件内容
+                with open(translations_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if 'en_US' in content or 'en' in content:
+                        print("✓ 翻译文件包含英文locale信息")
+                    else:
+                        print("⚠️  翻译文件可能不包含正确的英文locale信息")
+            else:
+                print("⚠️  英文翻译文件未生成，手动创建...")
+                # 手动创建英文翻译文件
+                en_translations_content = '''const TRANSLATIONS = {
+    "locale": "en_US",
+    "messages": {
+        "Search": "Search",
+        "Searching": "Searching",
+        "Search Results": "Search Results",
+        "Search finished, found %s page(s) matching the search query.": "Search finished, found %s page(s) matching the search query.",
+        "Search didn't return any results. Please try again with different keywords.": "Search didn't return any results. Please try again with different keywords.",
+        "Search Results for": "Search Results for",
+        "Searching for": "Searching for",
+        "Search": "Search",
+        "Searching": "Searching",
+        "Search Results": "Search Results"
+    }
+};
+'''
+                # 确保目录存在
+                translations_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(translations_file, 'w', encoding='utf-8') as f:
+                    f.write(en_translations_content)
+                print(f"✓ 已手动创建英文翻译文件: {translations_file}")
             
             # 合并文档集到统一目录
             print("合并文档集...")

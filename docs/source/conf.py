@@ -46,20 +46,6 @@ master_doc = os.environ.get('SPHINX_MASTER_DOC', 'index_zh')
 if 'SPHINX_MASTER_DOC_OVERRIDE' in os.environ:
     master_doc = os.environ['SPHINX_MASTER_DOC_OVERRIDE']
 
-# 根据环境变量设置文档排除模式
-exclude_patterns = []
-if 'SPHINX_EXCLUDE_PATTERNS' in os.environ:
-    exclude_patterns = os.environ['SPHINX_EXCLUDE_PATTERNS'].split(',')
-    exclude_patterns = [pattern.strip() for pattern in exclude_patterns if pattern.strip()]
-
-# 根据环境变量设置语言
-language = os.environ.get('SPHINX_LANGUAGE', 'zh_CN')
-
-# 调试信息
-print(f"DEBUG: master_doc = {master_doc}")
-print(f"DEBUG: language = {language}")
-print(f"DEBUG: exclude_patterns = {exclude_patterns}")
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -86,16 +72,29 @@ language = os.environ.get('SPHINX_LANGUAGE', project_config.get('language', 'zh_
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [
+# 基础排除模式
+base_exclude_patterns = [
     'MIGRATION_GUIDE.md',
     'OPTIMIZATION_SUMMARY.md',
-    'README.md',
+    'README_NEW_BUILD_SYSTEM.md',
     'requirements.txt',
     'utils/',
     '_templates/',
     '_static/',
     '_build/',
 ]
+
+# 根据环境变量设置文档排除模式
+exclude_patterns = base_exclude_patterns.copy()
+if 'SPHINX_EXCLUDE_PATTERNS' in os.environ:
+    env_exclude_patterns = os.environ['SPHINX_EXCLUDE_PATTERNS'].split(',')
+    env_exclude_patterns = [pattern.strip() for pattern in env_exclude_patterns if pattern.strip()]
+    exclude_patterns.extend(env_exclude_patterns)
+
+# 调试信息
+print(f"DEBUG: master_doc = {master_doc}")
+print(f"DEBUG: language = {language}")
+print(f"DEBUG: exclude_patterns = {exclude_patterns}")
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -187,17 +186,13 @@ is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true'
 if is_github_actions:
     # GitHub Pages环境：使用相对URL
     html_use_relative_urls = True
-    html_baseurl = None
+    html_baseurl = ""
 else:
     # 本地构建环境：使用相对URL，但禁用canonical链接
     html_use_relative_urls = True
-    html_baseurl = None
+    html_baseurl = ""
     # 禁用canonical链接以避免错误的绝对路径
     html_show_sourcelink = False
-    # 禁用canonical链接
-    html_use_relative_urls = True
-    # 设置空的canonical URL
-    html_baseurl = ""
 
 
 # 传递编辑基础 URL 给模板/前端脚本

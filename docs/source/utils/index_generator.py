@@ -163,6 +163,12 @@ class IndexGenerator:
 
         toc_block = "\n".join(toc_lines)
 
+        # 根据语言选择正确的描述
+        if language == 'en':
+            description = project_info.get('description_en') or project_info.get('description', 'This is a brief introduction to the SDK.')
+        else:
+            description = project_info.get('description', '这里是 SDK 的简要介绍。')
+
         content = f""".. {project_info.get('name', 'SDK')} documentation master file, created by sphinx-quickstart
 
 {title}
@@ -176,7 +182,7 @@ class IndexGenerator:
 
 {'Project Overview' if language == 'en' else '项目简介'}
 --------
-{project_info.get('description', '这里是 SDK 的简要介绍。' if language == 'zh' else 'This is a brief introduction to the SDK.')}
+{description}
 """
         return content
 

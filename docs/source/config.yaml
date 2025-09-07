@@ -3,6 +3,7 @@ project:
   name: "SDK_Docs_Template"
   title: "SDK 文档构建模板"
   description: "这是一个专为SDK文档构建设计的GitHub模板仓库，提供完整的自动化文档构建机制。"
+  description_en: "This is a GitHub template repository specifically designed for building SDK documentation, offering a complete automated documentation construction mechanism."
   version: "1.1.0"
   author: "Kurisaw"
   copyright: "2025, KurisaW"

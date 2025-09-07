@@ -28,6 +28,7 @@ class ProjectConfig:
     name: str
     title: str
     description: str
+    description_en: str
     version: str
     author: str
     copyright: str
@@ -62,6 +63,7 @@ class I18nConfigManager:
             name=project_data.get('name', ''),
             title=project_data.get('title', ''),
             description=project_data.get('description', ''),
+            description_en=project_data.get('description_en', ''),
             version=project_data.get('version', ''),
             author=project_data.get('author', ''),
             copyright=project_data.get('copyright', ''),
@@ -103,7 +105,7 @@ class I18nConfigManager:
             return {
                 'name': project.name,
                 'title': f"{project.name} Documentation",
-                'description': project.description,
+                'description': project.description_en or project.description,
                 'version': project.version,
                 'author': project.author,
                 'copyright': project.copyright,

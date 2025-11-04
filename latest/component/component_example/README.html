@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Component Example Project &mdash; SDK_Docs_Template 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/version_menu.css?v=ad0e61b7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=694004e0" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pdf_button.css?v=b2b664f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/edit_button.css?v=d629c565" />
+      <link rel="stylesheet" type="text/css" href="../../_static/language_switch.css?v=e28326ac" />
+      <link rel="stylesheet" type="text/css" href="../../_static/dark_mode.css?v=72ec50b7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=b3e8092d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/version_menu.js?v=cc75255b"></script>
+      <script src="../../_static/download_pdf.js?v=d1800c12"></script>
+      <script src="../../_static/version_info.js"></script>
+      <script src="../../_static/edit_on_github.js?v=5e1f1957"></script>
+      <script src="../../_static/language_switch.js?v=87312f67"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Components" href="../index.html" />
+   
+  
+  
+    <script>window.SPHINX_EDIT_BASE_URL = "https://github.com/kurisaW/sdk_build_doc_template/edit/";</script>
+    <meta name="edit-base-url" content="https://github.com/kurisaW/sdk_build_doc_template/edit/">
+  
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SDK_Docs_Template
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../basic/index.html">Basics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../basic/basic_example/README.html">Basic Example Project</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../basic/basic_example/README.html#features">Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../basic/basic_example/README.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../basic/basic_example/README.html#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../basic/basic_example/README.html#build-steps">Build Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../basic/basic_example/README.html#running-result">Running Result</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../basic/basic_example/README.html#code-structure">Code Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../basic/basic_example/README.html#notes">Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../basic/basic_example/README.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../driver/index.html">Drivers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../driver/driver_example/README.html">Driver Example Project</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#features">Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#build-steps">Build Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#running-result">Running Result</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#code-structure">Code Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#driver-interfaces">Driver Interfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#uart-driver">UART Driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#spi-driver">SPI Driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#i2c-driver">I2C Driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../driver/driver_example/README.html#adc-driver">ADC Driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#notes">Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../driver/driver_example/README.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Components</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Component Example Project</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-steps">Build Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#running-result">Running Result</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#code-structure">Code Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#network-components">Network Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tcp-client">TCP Client</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mqtt-client">MQTT Client</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#http-client">HTTP Client</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#network-configuration">Network Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#network-protocols">Network Protocols</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#supported-protocols">Supported Protocols</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#security-features">Security Features</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SDK_Docs_Template</a>
+      </nav>
+
+      <div class="wy-nav-content">
+  
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Components</a></li>
+      <li class="breadcrumb-item active">Component Example Project</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="component-example-project">
+<h1>Component Example Project<a class="headerlink" href="#component-example-project" title="Link to this heading"></a></h1>
+<p>This is a network component example project that demonstrates how to use various network components and protocol stacks in the SDK.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>TCP/IP network communication</p></li>
+<li><p>MQTT message transmission</p></li>
+<li><p>HTTP client</p></li>
+<li><p>Network configuration management</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<section id="hardware-requirements">
+<h3>Hardware Requirements<a class="headerlink" href="#hardware-requirements" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>One development board</p></li>
+<li><p>Ethernet connection</p></li>
+<li><p>Wi-Fi module (optional)</p></li>
+<li><p>Network debugging tools</p></li>
+</ul>
+</section>
+<section id="build-steps">
+<h3>Build Steps<a class="headerlink" href="#build-steps" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Configure network parameters</p></li>
+<li><p>Set the server address</p></li>
+<li><p>Compile the project</p></li>
+<li><p>Download and run</p></li>
+</ol>
+</section>
+<section id="running-result">
+<h3>Running Result<a class="headerlink" href="#running-result" title="Link to this heading"></a></h3>
+<p>The program will connect to the network, establish various network connections, and perform data transmission tests.</p>
+</section>
+</section>
+<section id="code-structure">
+<h2>Code Structure<a class="headerlink" href="#code-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>component_example/
+├── src/
+│   ├── main.c              # Main program
+│   ├── tcp_client.c        # TCP client
+│   ├── mqtt_client.c       # MQTT client
+│   ├── http_client.c       # HTTP client
+│   └── network_config.c    # Network configuration
+├── inc/
+│   ├── tcp_client.h
+│   ├── mqtt_client.h
+│   ├── http_client.h
+│   └── network_config.h
+└── README.md
+</pre></div>
+</div>
+</section>
+<section id="network-components">
+<h2>Network Components<a class="headerlink" href="#network-components" title="Link to this heading"></a></h2>
+<section id="tcp-client">
+<h3>TCP Client<a class="headerlink" href="#tcp-client" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create a TCP connection</span>
+<span class="n">tcp_connect</span><span class="p">(</span><span class="s">&quot;192.168.1.100&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">8080</span><span class="p">);</span>
+
+<span class="c1">// Send data</span>
+<span class="n">tcp_send</span><span class="p">(</span><span class="s">&quot;Hello Server</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="c1">// Receive data</span>
+<span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tcp_receive</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+</pre></div>
+</div>
+</section>
+<section id="mqtt-client">
+<h3>MQTT Client<a class="headerlink" href="#mqtt-client" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Connect to MQTT server</span>
+<span class="n">mqtt_connect</span><span class="p">(</span><span class="s">&quot;mqtt.example.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1883</span><span class="p">);</span>
+
+<span class="c1">// Subscribe to a topic</span>
+<span class="n">mqtt_subscribe</span><span class="p">(</span><span class="s">&quot;sensor/data&quot;</span><span class="p">);</span>
+
+<span class="c1">// Publish a message</span>
+<span class="n">mqtt_publish</span><span class="p">(</span><span class="s">&quot;device/status&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;online&quot;</span><span class="p">);</span>
+
+<span class="c1">// Receive messages</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mqtt_message_callback</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">topic</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">message</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Message received: %s -&gt; %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">topic</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="http-client">
+<h3>HTTP Client<a class="headerlink" href="#http-client" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Send GET request</span>
+<span class="n">http_get</span><span class="p">(</span><span class="s">&quot;http://api.example.com/data&quot;</span><span class="p">);</span>
+
+<span class="c1">// Send POST request</span>
+<span class="n">http_post</span><span class="p">(</span><span class="s">&quot;http://api.example.com/upload&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;{</span><span class="se">\&quot;</span><span class="s">data</span><span class="se">\&quot;</span><span class="s">:</span><span class="se">\&quot;</span><span class="s">value</span><span class="se">\&quot;</span><span class="s">}&quot;</span><span class="p">);</span>
+
+<span class="c1">// Handle response</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">http_response_callback</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">body</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;HTTP Status: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">);</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Response Body: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">body</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="network-configuration">
+<h3>Network Configuration<a class="headerlink" href="#network-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Configure IP address</span>
+<span class="n">network_set_ip</span><span class="p">(</span><span class="s">&quot;192.168.1.100&quot;</span><span class="p">);</span>
+
+<span class="c1">// Configure gateway</span>
+<span class="n">network_set_gateway</span><span class="p">(</span><span class="s">&quot;192.168.1.1&quot;</span><span class="p">);</span>
+
+<span class="c1">// Configure DNS</span>
+<span class="n">network_set_dns</span><span class="p">(</span><span class="s">&quot;8.8.8.8&quot;</span><span class="p">);</span>
+
+<span class="c1">// Start network</span>
+<span class="n">network_start</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="network-protocols">
+<h2>Network Protocols<a class="headerlink" href="#network-protocols" title="Link to this heading"></a></h2>
+<section id="supported-protocols">
+<h3>Supported Protocols<a class="headerlink" href="#supported-protocols" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>TCP/UDP</strong> – Transport layer protocols</p></li>
+<li><p><strong>HTTP/HTTPS</strong> – Application layer protocols</p></li>
+<li><p><strong>MQTT</strong> – Message queue protocol</p></li>
+<li><p><strong>CoAP</strong> – Constrained Application Protocol</p></li>
+<li><p><strong>WebSocket</strong> – Real-time communication protocol</p></li>
+</ul>
+</section>
+<section id="security-features">
+<h3>Security Features<a class="headerlink" href="#security-features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>TLS/SSL encryption</p></li>
+<li><p>Certificate validation</p></li>
+<li><p>Authentication</p></li>
+<li><p>Data integrity</p></li>
+</ul>
+</section>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Ensure the network connection is stable</p></li>
+<li><p>Check the server address and port</p></li>
+<li><p>Verify network configuration parameters</p></li>
+<li><p>Monitor network status indicators</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>Common network issues and solutions:</p>
+<ol class="arabic simple">
+<li><p><strong>Unable to connect to the network</strong> – Check IP configuration and gateway</p></li>
+<li><p><strong>TCP connection failed</strong> – Verify server address and port</p></li>
+<li><p><strong>MQTT connection timeout</strong> – Check network latency and firewall</p></li>
+<li><p><strong>HTTP request failed</strong> – Validate URL format and server status</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, KurisaW.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+  
+    <div id="giscus_thread" class="giscus" style="margin: 2rem 0;"></div>
+    <script src="https://giscus.app/client.js"
+            data-repo="kurisaW/sdk_build_doc_template"
+            data-repo-id="R_kgDOPXW4AQ"
+            
+            data-category-id="DIC_kwDOPXW4Ac4CxbZJ"
+            
+            data-mapping="url"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="1"
+            data-input-position="bottom"
+            data-theme="preferred_color_scheme"
+            data-lang="en"
+             data-loading="lazy"
+            crossorigin="anonymous"
+            async>
+    </script>
+  
+
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+  <div class="sdk-footer">
+    <div class="sdk-footer__inner">
+      <div class="sdk-footer__left">
+        <strong>SDK_Docs_Template</strong>
+        <span class="sdk-footer__sep">•</span> 版本：1.1.0
+      </div>
+      <div class="sdk-footer__right">
+        构建时间：<span id="sdk-build-time"></span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      try {
+        var el = document.getElementById('sdk-build-time');
+        if (el) {
+          var d = new Date(document.lastModified);
+          el.textContent = d.toLocaleString();
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+
+</body>
+</html>

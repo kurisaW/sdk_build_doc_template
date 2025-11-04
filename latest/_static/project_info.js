@@ -1,0 +1,1 @@
+window.projectInfo = {"projectName": "SDK_Docs_Template", "pdfFileName": "SDK_Docs_Template.pdf"};

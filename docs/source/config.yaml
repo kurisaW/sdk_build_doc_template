@@ -82,3 +82,19 @@ sphinx:
     - "strikethrough"
     - "substitution"
     - "tasklist" 
+
+# giscus 评论系统配置（按需填写 repo/category 信息以启用）
+giscus:
+  enabled: true
+  repo: "kurisaW/sdk_build_doc_template"
+  repo_id: "R_kgDOPXW4AQ"           # 必填：GitHub 提供的 Repo ID
+  category: "General"               # 可选：分类名（与 category_id 二选一，若两者均填则优先使用 category_id）
+  category_id: "DIC_kwDOPXW4Ac4CxbZJ"                   # 可选：分类 ID（推荐）
+  mapping: "url"                    # pathname | url | title | og:title | specific
+  strict: 0                          # 0/1
+  reactions_enabled: 1               # 0/1
+  emit_metadata: 1                   # 0/1
+  input_position: "bottom"          # top | bottom
+  theme: "preferred_color_scheme"   # light | dark | preferred_color_scheme | transparent_dark 等
+  lang: "zh-CN"
+  lazy: true                         # 懒加载 iframe

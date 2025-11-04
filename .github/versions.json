@@ -6,27 +6,6 @@
       "branch": "main",
       "url_path": "latest",
       "description": "最新开发版本"
-    },
-    {
-      "name": "1.1.2",
-      "display_name": "1.1.2",
-      "branch": "1.1.2",
-      "url_path": "1.1.2",
-      "description": "1.1.2版本"
-    },
-    {
-      "name": "1.1.1",
-      "display_name": "1.1.1",
-      "branch": "1.1.1",
-      "url_path": "1.1.1",
-      "description": "1.1.1版本"
-    },
-    {
-      "name": "1.1.0",
-      "display_name": "1.1.0",
-      "branch": "1.1.0",
-      "url_path": "1.1.0",
-      "description": "1.1.0版本"
     }
   ],
   "default_version": "main",

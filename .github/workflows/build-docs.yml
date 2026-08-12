@@ -6,15 +6,21 @@ on:
       - master
       - main
     paths:
-      - 'docs/**'
+      - 'source/**'
       - '.github/versions.json'
       - 'projects/**'
   pull_request:
     paths:
-      - 'docs/**'
+      - 'source/**'
       - '.github/versions.json'
       - 'projects/**'
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PYTHONUTF8: '1'
 
 jobs:
   validate-versions:
@@ -33,13 +39,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd docs/source
-          pip install -r requirements.txt
+          cd source
+          python -m pip install -r requirements.txt
 
       - name: Validate version configuration
         run: |
-          cd docs/source
-          python utils/version_utils.py --validate
+          cd source
+          python build.py --validate
 
   build-docs:
     needs: validate-versions
@@ -57,11 +63,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd docs/source
-          pip install -r requirements.txt
-
-      - name: Setup Google Chrome for headless PDF
-        uses: browser-actions/setup-chrome@v1
+          cd source
+          python -m pip install -r requirements.txt
 
       - name: Install fonts and locale support
         env:
@@ -69,8 +72,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            fonts-noto-cjk fonts-wqy-zenhei fonts-wqy-microhei \
-            fonts-arphic-uming fonts-arphic-ukai \
+            latexmk texlive-xetex texlive-latex-recommended \
+            texlive-latex-extra texlive-fonts-recommended \
+            texlive-lang-chinese fonts-texgyre fonts-dejavu-core \
+            fonts-adobe-source-code-pro fontconfig \
             locales
           # 生成中英文locale
           sudo locale-gen zh_CN.UTF-8
@@ -78,6 +83,12 @@ jobs:
           sudo locale-gen en_US.UTF-8
           sudo locale-gen en_GB.UTF-8
           sudo fc-cache -f -v || true
+
+      - name: Verify PDF toolchain
+        run: |
+          python3 -c "from PIL import Image; print('Pillow:', Image.__version__)"
+          cd source
+          python utils/pdf_environment.py --no-auto-install
 
       - name: Verify locale support
         run: |
@@ -101,15 +112,13 @@ jobs:
           
       - name: List version configurations
         run: |
-          cd docs/source
+          cd source
           echo "=== 版本配置列表 ==="
           python utils/version_utils.py --list
 
       - name: Build all versions
-        env:
-          CHROME_PATH: ${{ env.CHROME_PATH }}
         run: |
-          cd docs/source
+          cd source
           echo "=== 构建环境信息 ==="
           echo "LANG: $LANG"
           echo "LC_ALL: $LC_ALL"
@@ -120,13 +129,13 @@ jobs:
           echo "=== 开始构建 ==="
           echo "注意: 构建管理器将分别为中英文设置正确的locale环境变量"
           # 不设置全局locale，让构建管理器自己控制
-          python build_manager.py --clean
+          python build.py --clean
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: docs-build
-          path: docs/source/source_build/html
+          path: source/source_build/html
           retention-days: 30
 
   deploy-docs:
@@ -138,13 +147,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs-build
-          path: docs/source/source_build/html
+          path: source/source_build/html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/source/source_build/html
+          publish_dir: source/source_build/html
           force_orphan: true
           user_name: 'github-actions[bot]'
-          user_email: '41898282+github-actions[bot]@users.noreply.github.com' 
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'

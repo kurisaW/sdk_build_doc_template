@@ -1,0 +1,182 @@
+# SDK 文档构建配置文件
+project:
+  name: "SDK_Docs_Template"
+  title: "SDK 文档构建模板"
+  title_en: "SDK Documentation Build Template"
+  description: "从结构化 Markdown 生成双语文档站、多版本入口与严格排版 PDF。"
+  description_en: "Generate a bilingual documentation site, versioned entry points, and strictly typeset PDFs from structured Markdown."
+  version: "2.0.0"
+  author: "Kurisaw"
+  copyright: "2025, KurisaW"
+  # language: "zh_CN"  # 注释掉固定语言配置，支持中英文双语
+  website: "kurisaw.eu.org"
+
+# 仓库配置
+repository:
+  name: "sdk-docs-template"
+  projects_dir: "../projects"
+  docs_dir: "."
+
+# 文档分类配置。键名同时是 projects/ 下的稳定路径，显示名称与路径解耦。
+categories:
+  overview:
+    name: "项目概览"
+    name_en: "Overview"
+    description: "模板的定位、能力边界与从内容到交付的工作方式。"
+    description_en: "The template's scope, capabilities, and content-to-delivery workflow."
+  getting_started:
+    name: "快速开始"
+    name_en: "Quick Start"
+    description: "从环境检查到首次本地预览和发布的最短路径。"
+    description_en: "The shortest path from prerequisites to a local preview and first release."
+  authoring:
+    name: "内容创作"
+    name_en: "Authoring"
+    description: "用 Markdown、MyST 与 reStructuredText 编写可维护的双语内容。"
+    description_en: "Maintainable bilingual content with Markdown, MyST, and reStructuredText."
+  content_models:
+    name: "内容组织"
+    name_en: "Content Models"
+    description: "根据仓库形态选择递归文档树或严格项目目录。"
+    description_en: "Choose a recursive document tree or a strict project catalog for your repository."
+  build_outputs:
+    name: "构建与输出"
+    name_en: "Build and Outputs"
+    description: "本地构建、Web 站点与严格排版 PDF 的完整交付路径。"
+    description_en: "Local builds, web documentation, and rigorously typeset PDFs."
+  versions_deployment:
+    name: "版本与部署"
+    name_en: "Versions and Deployment"
+    description: "多版本构建、GitHub Actions 验证与 GitHub Pages 发布。"
+    description_en: "Multi-version builds, GitHub Actions validation, and GitHub Pages publishing."
+  showcases:
+    name: "场景化示例"
+    name_en: "Showcases"
+    description: "以真实 SDK、BSP、PDF 与版本发布场景验证模板能力。"
+    description_en: "Validate the template through realistic SDK, BSP, PDF, and release scenarios."
+  reference:
+    name: "配置参考"
+    name_en: "Reference"
+    description: "配置字段、命令行、输出结构与配置模板的精确参考。"
+    description_en: "Exact references for configuration, CLI commands, outputs, and templates."
+  troubleshooting:
+    name: "问题排查"
+    name_en: "Troubleshooting"
+    description: "快速定位内容、环境、PDF 和 CI 中的常见构建失败。"
+    description_en: "Diagnose common content, environment, PDF, and CI build failures."
+  maintainers:
+    name: "维护者指南"
+    name_en: "Maintainer Guide"
+    description: "构建器架构、测试边界和贡献者协作约定。"
+    description_en: "Builder architecture, test boundaries, and contributor conventions."
+
+# 文档生成配置
+generation:
+  # 兼容旧配置；实际收录范围与导航结构分别由 discovery/navigation 控制。
+  mode: "directory_tree"
+
+  # 文档树模式递归同步 projects 中受支持的文档与资源。
+  discovery:
+    mode: "recursive_tree"
+
+  # 按源目录组织侧栏与 PDF 章节。
+  navigation:
+    mode: "directory_tree"
+    order:
+      - "overview"
+      - "getting_started"
+      - "authoring"
+      - "content_models"
+      - "build_outputs"
+      - "versions_deployment"
+      - "showcases"
+      - "reference"
+      - "troubleshooting"
+      - "maintainers"
+
+  # 通过根 README 自动识别语言；两个文件都存在时启用中英文切换 UI。
+  language_detection:
+    zh: "README_zh.md"
+    en: "README.md"
+  default_language: "zh"
+
+  # PDF 版式：web 为产品文档版式；也可通过环境变量 PDF_STYLE 临时覆盖。
+  pdf_style: "web"
+
+  # PDF 字体必须在本地与 CI 中安装同名字体；缺失时构建失败，不使用回退字体。
+  pdf_fonts:
+    latin: "TeX Gyre Termes"
+    cjk_body: "FandolSong-Regular.otf"
+    cjk_heading: "FandolHei-Regular.otf"
+    cjk_emphasis: "FandolKai-Regular.otf"
+    code: "Source Code Pro"
+
+  # 相对于 repository.projects_dir，分别配置各语言的网站首页。
+  default_page:
+    zh: "README_zh.md"
+    en: "README.md"
+
+  # 相对于每个文档目录。README 存在时优先使用，否则自动生成语言索引。
+  directory_index:
+    zh: "README_zh.md"
+    en: "README.md"
+
+  # 同步到 Sphinx source 的文档及资源类型。
+  sync_extensions:
+    - ".md"
+    - ".rst"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".svg"
+    - ".webp"
+
+  # 旧版排序键，保留用于兼容早期构建脚本。
+  output_structure:
+    - "overview"
+    - "getting_started"
+    - "authoring"
+    - "content_models"
+    - "build_outputs"
+    - "versions_deployment"
+    - "showcases"
+    - "reference"
+    - "troubleshooting"
+    - "maintainers"
+
+# Sphinx 配置
+sphinx:
+  theme: "sphinx_rtd_theme"
+  extensions:
+    - "myst_parser"
+  source_suffix:
+    ".rst": "restructuredtext"
+    ".md": "markdown"
+  myst_extensions:
+    - "colon_fence"
+    - "deflist"
+    - "dollarmath"
+    - "html_image"
+    - "html_admonition"
+    - "replacements"
+    - "smartquotes"
+    - "strikethrough"
+    - "substitution"
+    - "tasklist"
+
+# giscus 评论系统配置（按需填写 repo/category 信息以启用）
+giscus:
+  enabled: true
+  repo: "kurisaW/sdk_build_doc_template"
+  repo_id: "R_kgDOPXW4AQ"           # 必填：GitHub 提供的 Repo ID
+  category: "General"               # 可选：分类名（与 category_id 二选一）
+  category_id: "DIC_kwDOPXW4Ac4CxbZJ" # 可选：分类 ID（推荐）
+  mapping: "url"                    # pathname | url | title | og:title | specific
+  strict: 0                          # 0/1
+  reactions_enabled: 1              # 0/1
+  emit_metadata: 1                  # 0/1
+  input_position: "bottom"          # top | bottom
+  theme: "preferred_color_scheme"   # light | dark | preferred_color_scheme | transparent_dark
+  lang: "zh-CN"
+  lazy: true                         # 懒加载 iframe

@@ -10,6 +10,7 @@ import platform
 import shutil
 import subprocess
 import tempfile
+from urllib.request import Request, urlopen
 from pathlib import Path
 from typing import Mapping, Optional
 
@@ -23,6 +24,18 @@ DEFAULT_PDF_FONTS = {
     "cjk_emphasis": "FandolKai-Regular.otf",
     "code": "Source Code Pro",
 }
+
+
+SOURCE_CODE_PRO_MIRROR = os.environ.get(
+    "SOURCE_CODE_PRO_MIRROR",
+    "https://cdn.jsdelivr.net/gh/adobe-fonts/source-code-pro@release/TTF",
+).rstrip("/")
+SOURCE_CODE_PRO_FILES = (
+    "SourceCodePro-Regular.ttf",
+    "SourceCodePro-Bold.ttf",
+    "SourceCodePro-It.ttf",
+    "SourceCodePro-BoldIt.ttf",
+)
 
 
 def configured_pdf_fonts(config: Optional[Mapping] = None) -> dict[str, str]:
@@ -118,7 +131,6 @@ def install_pdf_system_dependencies() -> bool:
             subprocess.run(prefix + ["apt-get", "update"], check=False)
             packages = [
                 "fontconfig",
-                "fonts-adobe-source-code-pro",
                 "fonts-dejavu-core",
                 "fonts-texgyre",
                 "latexmk",
@@ -132,7 +144,42 @@ def install_pdf_system_dependencies() -> bool:
                 prefix + ["apt-get", "install", "-y", *packages],
                 check=False,
             )
-            return result.returncode == 0
+            if result.returncode != 0:
+                return False
+
+            font_dir = Path("/usr/local/share/fonts/source-code-pro")
+            if prefix:
+                subprocess.run(prefix + ["install", "-d", str(font_dir)], check=False)
+            else:
+                font_dir.mkdir(parents=True, exist_ok=True)
+            for filename in SOURCE_CODE_PRO_FILES:
+                target = font_dir / filename
+                try:
+                    request = Request(
+                        f"{SOURCE_CODE_PRO_MIRROR}/{filename}",
+                        headers={"User-Agent": "sdk-build-doc-template"},
+                    )
+                    with urlopen(request, timeout=45) as response:
+                        data = response.read()
+                    if prefix:
+                        with tempfile.NamedTemporaryFile(delete=False) as temp:
+                            temp.write(data)
+                            temp_path = temp.name
+                        install_result = subprocess.run(
+                            prefix + ["install", "-m", "0644", temp_path, str(target)],
+                            check=False,
+                        )
+                        Path(temp_path).unlink(missing_ok=True)
+                        if install_result.returncode != 0:
+                            print(f"[WARN] Unable to install {filename}")
+                            return False
+                    else:
+                        target.write_bytes(data)
+                except (OSError, ValueError) as exc:
+                    print(f"[WARN] Unable to download {filename}: {exc}")
+                    return False
+            subprocess.run(prefix + ["fc-cache", "-f"], check=False)
+            return True
         if system == "darwin" and shutil.which("brew"):
             subprocess.run(["brew", "install", "--quiet", "mactex-no-gui"], check=False)
             return True

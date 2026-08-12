@@ -17,6 +17,7 @@ class PdfBuilderTests(unittest.TestCase):
     def test_pdf_code_blocks_are_smaller_than_body_text(self):
         conf = (SOURCE_DIR / "conf.py").read_text(encoding="utf-8")
 
+        self.assertIn("'fontpkg': ''", conf)
         self.assertIn(r"'tocdepth': r'\setcounter{tocdepth}{2}'", conf)
         self.assertIn(
             r"\fvset{fontsize=\small,baselinestretch=1.08}", conf

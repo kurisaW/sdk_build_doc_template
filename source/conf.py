@@ -438,6 +438,9 @@ latex_elements = {
     'papersize': 'a4paper',
     'pointsize': '11pt',
     'extraclassoptions': 'oneside,openany',
+    # Sphinx's XeLaTeX default injects tgtermes/tgheros, which are optional
+    # LaTeX packages and are not needed when fontspec selects our fonts below.
+    'fontpkg': '',
     # PDF 目录保留三层：分类 README 标题、文档标题、正文章节。
     # 文档标题由 latex_toplevel_sectioning 设为 section 后处于第二层。
     'tocdepth': r'\setcounter{tocdepth}{2}',

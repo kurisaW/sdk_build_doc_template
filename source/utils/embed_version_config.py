@@ -14,7 +14,8 @@ import shutil
 
 def load_versions_config():
     """加载 .github/versions.json 文件"""
-    versions_file = Path(__file__).parent.parent.parent.parent / '.github' / 'versions.json'
+    # utils/embed_version_config.py -> source -> repository root
+    versions_file = Path(__file__).resolve().parents[2] / '.github' / 'versions.json'
     if not versions_file.exists():
         print(f"警告: 找不到版本配置文件 {versions_file}")
         return None
@@ -156,4 +157,4 @@ def main():
         return 1
 
 if __name__ == '__main__':
-    sys.exit(main()) 
+        sys.exit(main())

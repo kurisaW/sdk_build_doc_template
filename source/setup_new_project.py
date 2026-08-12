@@ -203,7 +203,14 @@ jobs:
             latexmk texlive-xetex texlive-latex-recommended \\
             texlive-latex-extra texlive-fonts-recommended \\
             texlive-lang-chinese fonts-texgyre fonts-dejavu-core \\
-            fonts-adobe-source-code-pro fontconfig
+            fontconfig curl
+          SOURCE_CODE_PRO_MIRROR="${SOURCE_CODE_PRO_MIRROR:-https://cdn.jsdelivr.net/gh/adobe-fonts/source-code-pro@release/TTF}"
+          sudo install -d /usr/local/share/fonts/source-code-pro
+          for font in SourceCodePro-Regular.ttf SourceCodePro-Bold.ttf SourceCodePro-It.ttf SourceCodePro-BoldIt.ttf; do
+            sudo curl --fail --location --retry 3 --silent --show-error \\
+              "${SOURCE_CODE_PRO_MIRROR}/${font}" \\
+              --output "/usr/local/share/fonts/source-code-pro/${font}"
+          done
           cd source
           python utils/pdf_environment.py --no-auto-install
 

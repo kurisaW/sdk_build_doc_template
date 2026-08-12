@@ -7,7 +7,43 @@
         current: 'main',
         versions: {}
     };
+
+    // The build-time embed script replaces this with the repository config.
+    function getEmbeddedVersionConfig() {
+        return null;
+    }
     
+    function getVersionConfigUrl() {
+        const script = Array.from(document.scripts).find((candidate) =>
+            candidate.src && candidate.src.includes('/version_menu.js')
+        );
+        if (script && script.src) {
+            return new URL('version_config.json', script.src).href;
+        }
+        return new URL('_static/version_config.json', document.baseURI).href;
+    }
+
+    async function loadVersionConfig() {
+        try {
+            const response = await fetch(getVersionConfigUrl(), { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`版本配置加载失败: HTTP ${response.status}`);
+            }
+            const config = await response.json();
+            if (!config || !Array.isArray(config.versions) || !config.versions.length) {
+                throw new Error('版本配置为空或格式无效');
+            }
+            return config;
+        } catch (error) {
+            const embedded = getEmbeddedVersionConfig();
+            if (embedded && Array.isArray(embedded.versions) && embedded.versions.length) {
+                console.warn('无法读取静态版本配置，使用构建时嵌入配置', error);
+                return embedded;
+            }
+            throw error;
+        }
+    }
+
     // 从版本配置文件获取版本信息
     async function fetchVersionInfo() {
         try {
@@ -23,24 +59,12 @@
             let configPath = '';
             
             console.log('本地文件系统，使用嵌入的版本配置');
-            const embeddedConfig = getEmbeddedVersionConfig();
-            if (embeddedConfig) {
-                config = embeddedConfig;
-                configPath = 'embedded';
-                console.log('使用嵌入的版本配置');
-            } else {
-                console.log('嵌入配置不可用，尝试其他方法');
-            }
+            config = await loadVersionConfig();
+            configPath = getVersionConfigUrl();
             
             // 如果仍然没有配置，使用嵌入的配置作为兜底
             if (!config) {
-                console.log('尝试使用嵌入的版本配置作为兜底');
-                const embeddedConfig = getEmbeddedVersionConfig();
-                if (embeddedConfig) {
-                    config = embeddedConfig;
-                    configPath = 'embedded_fallback';
-                    console.log('使用嵌入的版本配置作为兜底');
-                }
+                console.log('版本配置加载失败');
             }
             
             if (!config) {
@@ -49,7 +73,7 @@
             
             // 确定当前版本
             const currentPath = window.location.pathname;
-            let currentVersion = config.default_version || 'main';
+            let currentVersion = config.default_version || config.latest_version || config.versions[0].name;
             
             // 从URL路径判断当前版本
             for (const version of config.versions) {
@@ -126,6 +150,11 @@
     
     // 创建版本菜单
     function createVersionMenu() {
+        // Do not render the initial empty state while the async config loads.
+        if (!Object.keys(VERSION_CONFIG.versions).length) {
+            return;
+        }
+
         // 查找侧边栏 - 改进查找逻辑
         let sidebar = document.querySelector('.wy-nav-side');
         if (!sidebar) {

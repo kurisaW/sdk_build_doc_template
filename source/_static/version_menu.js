@@ -175,15 +175,9 @@
             return;
         }
         
-        // 计算最长版本名称的宽度
-        const versionNames = Object.values(VERSION_CONFIG.versions).map(v => v.display_name);
-        const maxLength = Math.max(...versionNames.map(name => name.length));
-        const minWidth = Math.max(80, maxLength * 5 + 20);
-        
         // 创建版本菜单容器
         const versionMenu = document.createElement('div');
         versionMenu.className = 'rtd-version-menu';
-        versionMenu.style.minWidth = minWidth + 'px';
         versionMenu.innerHTML = `
             <button class="rtd-version-menu__button" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="rtd-version-menu__current">${VERSION_CONFIG.versions[VERSION_CONFIG.current]?.display_name || '版本'}</span>

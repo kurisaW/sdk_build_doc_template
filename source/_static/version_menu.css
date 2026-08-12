@@ -1,9 +1,12 @@
 /* Read the Docs 风格的版本菜单样式 */
 .rtd-version-menu {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 4px auto;
-  width: calc(30% - 6px);
+  width: max-content;
+  max-width: 100%;
   text-align: center;
 }
 
@@ -23,7 +26,8 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  box-sizing: border-box;
   font-size: 11px;
   font-weight: 500;
   line-height: 14px;
@@ -31,9 +35,19 @@
   position: relative;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   white-space: nowrap;
-  width: 100%;
+  width: max-content;
   min-width: 80px;
+  max-width: 100%;
   margin: 0 auto;
+}
+
+.rtd-version-menu__current {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rtd-version-menu__button:hover {
@@ -70,6 +84,7 @@
   left: 50%;
   margin-top: 2px;
   min-width: 100%;
+  max-width: min(320px, calc(100vw - 24px));
   padding: 2px 0;
   position: absolute;
   top: 100%;
@@ -91,10 +106,12 @@
   font-size: 11px;
   line-height: 14px;
   padding: 4px 10px;
-  text-align: left;
+  text-align: center;
   text-decoration: none;
   width: 100%;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rtd-version-menu__item:hover {
@@ -124,7 +141,7 @@
 @media (max-width: 768px) {
   .rtd-version-menu {
     margin: 2px auto;
-    width: calc(50% - 8px);
+    max-width: calc(100% - 8px);
   }
   
   .rtd-version-menu__button {
@@ -181,4 +198,4 @@
     background-color: #1f6feb;
     color: #0d1117;
   }
-} 
+}

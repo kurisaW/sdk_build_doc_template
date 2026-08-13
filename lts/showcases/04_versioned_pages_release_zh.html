@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>示例：多版本 GitHub Pages 发布 &mdash; SDK 文档构建模板</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/version_menu.css?v=7fd031d4" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f1a0ebf8" />
+      <link rel="stylesheet" type="text/css" href="../_static/pdf_button.css?v=b2b664f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/edit_button.css?v=d629c565" />
+      <link rel="stylesheet" type="text/css" href="../_static/language_switch.css?v=e0239f85" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode.css?v=dc237b60" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=0118dc02"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=beaddf03"></script>
+      <script src="../_static/version_menu.js?v=478917ef"></script>
+      <script src="../_static/download_pdf.js?v=a35b4182"></script>
+      <script src="../_static/version_info.js"></script>
+      <script src="../_static/edit_on_github.js?v=a11cc332"></script>
+      <script src="../_static/language_switch.js?v=d198989a"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="配置参考" href="../reference/README_zh.html" />
+    <link rel="prev" title="示例：可归档的 PDF 发布手册" href="03_pdf_release_handbook_zh.html" />
+   
+  
+    <script>
+      window.DOCS_LANGUAGE = {"available": ["zh", "en"], "current": "zh", "enabled": true, "target_docname": "showcases/04_versioned_pages_release", "target_language": "en", "target_url": "04_versioned_pages_release.html"};
+      
+        window.DOCS_LANGUAGE.targetUrl = "04_versioned_pages_release.html";
+      
+    </script>
+  
+  
+  
+    <script>window.SPHINX_EDIT_BASE_URL = "https://github.com/kurisaW/sdk_build_doc_template/edit/";</script>
+    <meta name="edit-base-url" content="https://github.com/kurisaW/sdk_build_doc_template/edit/">
+  
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../README_zh.html" class="icon icon-home">
+            SDK_Docs_Template
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/README_zh.html">项目概览</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../overview/README_zh.html#id2">核心设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview/README_zh.html#id3">这套模板解决什么问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../overview/01_capability_map_zh.html">能力地图与验证边界</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../overview/01_capability_map_zh.html#id2">输出体验</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/README_zh.html">快速开始</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/README_zh.html#id2">五分钟路径</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/01_first_build_zh.html">首次本地构建</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting_started/01_first_build_zh.html#id2">预期产物</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting_started/01_first_build_zh.html#id3">首次失败时先做什么</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../authoring/README_zh.html">内容创作</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../authoring/README_zh.html#id2">推荐目录形态</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../authoring/README_zh.html#id3">内容表达</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../authoring/01_content_conventions_zh.html">内容约定：让文档可以长期维护</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../authoring/01_content_conventions_zh.html#id2">文件命名</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../authoring/01_content_conventions_zh.html#id3">每篇技术页面的最小结构</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../authoring/02_bilingual_authoring_zh.html">双语编写与语言切换</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../authoring/02_bilingual_authoring_zh.html#id2">对应页规则</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../authoring/02_bilingual_authoring_zh.html#id3">译文质量门槛</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../content_models/README_zh.html">内容组织</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../content_models/01_model_selection_zh.html">选择递归文档树还是严格项目目录</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../content_models/01_model_selection_zh.html#recursive-tree">选择 recursive_tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../content_models/01_model_selection_zh.html#project-catalog">选择 project_catalog</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../build_outputs/README_zh.html">构建与输出</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../build_outputs/README_zh.html#id2">本地工作流</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../build_outputs/01_local_build_zh.html">本地构建工作流</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../build_outputs/02_pdf_delivery_zh.html">PDF 交付：排版与环境同样是构建输入</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../build_outputs/02_pdf_delivery_zh.html#id1">输出特征</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../versions_deployment/README_zh.html">版本与部署</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../versions_deployment/README_zh.html#id2">发布链路</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../versions_deployment/01_github_automation_zh.html">GitHub Actions 与 GitHub Pages 自动发布</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../versions_deployment/01_github_automation_zh.html#id1">工作流阶段</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../versions_deployment/01_github_automation_zh.html#pr">PR 与默认分支的行为差异</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../versions_deployment/01_github_automation_zh.html#id2">发布前检查清单</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="README_zh.html">场景化示例</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="01_embedded_sdk_guide_zh.html">示例：嵌入式 SDK 开发手册</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="01_embedded_sdk_guide_zh.html#id1">场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_embedded_sdk_guide_zh.html#id2">内容策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="01_embedded_sdk_guide_zh.html#id3">验收</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="02_bsp_driver_catalog_zh.html">示例：BSP 与驱动项目目录</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="02_bsp_driver_catalog_zh.html#id1">场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="02_bsp_driver_catalog_zh.html#id2">为什么这比递归扫描更可靠</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="03_pdf_release_handbook_zh.html">示例：可归档的 PDF 发布手册</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="03_pdf_release_handbook_zh.html#id1">场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="03_pdf_release_handbook_zh.html#id2">建议的内容压力测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">示例：多版本 GitHub Pages 发布</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">场景</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/README_zh.html">配置参考</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../reference/README_zh.html#id2">高频配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/README_zh.html#id3">常用命令</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/README_zh.html">问题排查</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/README_zh.html#id2">排查顺序</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../maintainers/README_zh.html">维护者指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../maintainers/README_zh.html#id2">架构职责</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../maintainers/README_zh.html#id3">贡献要求</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../README_zh.html">SDK_Docs_Template</a>
+      </nav>
+
+      <div class="wy-nav-content">
+  
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../README_zh.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="README_zh.html">场景化示例</a></li>
+      <li class="breadcrumb-item active">示例：多版本 GitHub Pages 发布</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="github-pages">
+<h1>示例：多版本 GitHub Pages 发布<a class="headerlink" href="#github-pages" title="Link to this heading"></a></h1>
+<section id="id1">
+<h2>场景<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>开源 SDK 的 main 分支持续迭代，但用户仍需要 v1.1 的安装命令和 API 说明。将 latest 和稳定分支同时发布，既保证新读者看到当前能力，也避免历史使用者被不兼容修改打断。</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;versions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;url_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;最新开发版本&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1.1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1.1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1.1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;url_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1.1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;稳定维护版本&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;default_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;latest_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>构建器不会 checkout 当前工作目录，而是为 main 和 v1.1 分别建立 worktree。PR 阶段产出 Artifact 供评审；合并到默认分支后，部署任务将相同 Artifact 发布到 GitHub Pages。版本菜单只需读取构建时注入的版本描述，无需手工维护静态链接。</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="03_pdf_release_handbook_zh.html" class="btn btn-neutral float-left" title="示例：可归档的 PDF 发布手册" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../reference/README_zh.html" class="btn btn-neutral float-right" title="配置参考" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2025, KurisaW。</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+  
+    <div id="giscus_thread" class="giscus" style="margin: 2rem 0;"></div>
+    <script src="https://giscus.app/client.js"
+            data-repo="kurisaW/sdk_build_doc_template"
+            data-repo-id="R_kgDOPXW4AQ"
+            
+            data-category-id="DIC_kwDOPXW4Ac4CxbZJ"
+            
+            data-mapping="url"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="1"
+            data-input-position="bottom"
+            data-theme="preferred_color_scheme"
+            data-lang="zh-CN"
+             data-loading="lazy"
+            crossorigin="anonymous"
+            async>
+    </script>
+  
+
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+  <div class="sdk-footer">
+    <div class="sdk-footer__inner">
+      <div class="sdk-footer__left">
+        <strong>SDK_Docs_Template</strong>
+        <span class="sdk-footer__sep">•</span> 版本：2.0.0
+      </div>
+      <div class="sdk-footer__right">
+        构建时间：<span id="sdk-build-time"></span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      try {
+        var el = document.getElementById('sdk-build-time');
+        if (el) {
+          var d = new Date(document.lastModified);
+          el.textContent = d.toLocaleString();
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Conventions for Long-Lived Documentation &mdash; SDK 文档构建模板</title>
+      <link rel="stylesheet" type="text/css" href="../_static_en/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/version_menu.css?v=7fd031d4" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/custom.css?v=f1a0ebf8" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/pdf_button.css?v=b2b664f3" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/edit_button.css?v=d629c565" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/language_switch.css?v=e0239f85" />
+      <link rel="stylesheet" type="text/css" href="../_static_en/dark_mode.css?v=dc237b60" />
+
+  
+      <script src="../_static_en/jquery.js?v=5d32c60e"></script>
+      <script src="../_static_en/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static_en/documentation_options.js?v=db988ed8"></script>
+      <script src="../_static_en/doctools.js?v=9bcbadda"></script>
+      <script src="../_static_en/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static_en/version_menu.js?v=478917ef"></script>
+      <script src="../_static_en/download_pdf.js?v=a35b4182"></script>
+      <script src="../_static_en/version_info.js"></script>
+      <script src="../_static_en/edit_on_github.js?v=a11cc332"></script>
+      <script src="../_static_en/language_switch.js?v=d198989a"></script>
+    <script src="../_static_en/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex_en.html" />
+    <link rel="search" title="Search" href="../search_en.html" />
+    <link rel="next" title="Bilingual Authoring and Language Switching" href="02_bilingual_authoring.html" />
+    <link rel="prev" title="Authoring" href="README.html" />
+   
+  
+    <script>
+      window.DOCS_LANGUAGE = {"available": ["zh", "en"], "current": "en", "enabled": true, "target_docname": "authoring/01_content_conventions_zh", "target_language": "zh", "target_url": "01_content_conventions_zh.html"};
+      
+        window.DOCS_LANGUAGE.targetUrl = "01_content_conventions_zh.html";
+      
+    </script>
+  
+  
+  
+    <script>window.SPHINX_EDIT_BASE_URL = "https://github.com/kurisaW/sdk_build_doc_template/edit/";</script>
+    <meta name="edit-base-url" content="https://github.com/kurisaW/sdk_build_doc_template/edit/">
+  
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../README.html" class="icon icon-home">
+            SDK_Docs_Template
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search_en.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/README.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../overview/01_capability_map.html">Capability Map and Validation Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/README.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/01_first_build.html">First Local Build</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="README.html">Authoring</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Content Conventions for Long-Lived Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="02_bilingual_authoring.html">Bilingual Authoring and Language Switching</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../content_models/README.html">Content Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../content_models/01_model_selection.html">Choosing a Recursive Tree or Strict Project Catalog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../build_outputs/README.html">Build and Outputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../build_outputs/01_local_build.html">Local Build Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build_outputs/02_pdf_delivery.html">PDF Delivery: Typesetting and Environment Are Inputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../versions_deployment/README.html">Versions and Deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../versions_deployment/01_github_automation.html">GitHub Actions and GitHub Pages Release Automation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../showcases/README.html">Showcases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../showcases/01_embedded_sdk_guide.html">Showcase: Embedded SDK Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../showcases/02_bsp_driver_catalog.html">Showcase: BSP and Driver Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../showcases/03_pdf_release_handbook.html">Showcase: Archivable PDF Release Handbook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../showcases/04_versioned_pages_release.html">Showcase: Versioned GitHub Pages Release</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/README.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/README.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../maintainers/README.html">Maintainer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../README.html">SDK_Docs_Template</a>
+      </nav>
+
+      <div class="wy-nav-content">
+  
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../README.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="README.html">Authoring</a></li>
+      <li class="breadcrumb-item active">Content Conventions for Long-Lived Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="content-conventions-for-long-lived-documentation">
+<h1>Content Conventions for Long-Lived Documentation<a class="headerlink" href="#content-conventions-for-long-lived-documentation" title="Link to this heading"></a></h1>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Content type</p></th>
+<th class="head"><p>Chinese</p></th>
+<th class="head"><p>English</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Site or section landing page</p></td>
+<td><p>README_zh.md</p></td>
+<td><p>README.md</p></td>
+</tr>
+<tr class="row-odd"><td><p>Markdown body page</p></td>
+<td><p>topic_zh.md</p></td>
+<td><p>topic.md</p></td>
+</tr>
+<tr class="row-even"><td><p>reStructuredText body page</p></td>
+<td><p>topic_zh.rst</p></td>
+<td><p>topic.rst</p></td>
+</tr>
+<tr class="row-odd"><td><p>Images and attachments</p></td>
+<td><p>figures/ or assets/</p></td>
+<td><p>Shared in the same directory</p></td>
+</tr>
+</tbody>
+</table>
+<p>Place counterpart documents in the same directory and keep the same base name, such as install_zh.md and install.md. Use stable English snake_case paths; put reader-facing language in the document title and category display name.</p>
+<p>Every technical page should state its goal and applicable version, prerequisites, runnable steps and execution environment, a success criterion, and a link for likely failures. Keep images next to their article and reference them relatively. The builder validates that local images exist and stay inside projects, so do not rely on escaping …/ paths.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-left" title="Authoring" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="02_bilingual_authoring.html" class="btn btn-neutral float-right" title="Bilingual Authoring and Language Switching" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, KurisaW.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+  
+    <div id="giscus_thread" class="giscus" style="margin: 2rem 0;"></div>
+    <script src="https://giscus.app/client.js"
+            data-repo="kurisaW/sdk_build_doc_template"
+            data-repo-id="R_kgDOPXW4AQ"
+            
+            data-category-id="DIC_kwDOPXW4Ac4CxbZJ"
+            
+            data-mapping="url"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="1"
+            data-input-position="bottom"
+            data-theme="preferred_color_scheme"
+            data-lang="zh-CN"
+             data-loading="lazy"
+            crossorigin="anonymous"
+            async>
+    </script>
+  
+
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+  <div class="sdk-footer">
+    <div class="sdk-footer__inner">
+      <div class="sdk-footer__left">
+        <strong>SDK_Docs_Template</strong>
+        <span class="sdk-footer__sep">•</span> Version:2.0.0
+      </div>
+      <div class="sdk-footer__right">
+        Built:<span id="sdk-build-time"></span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      try {
+        var el = document.getElementById('sdk-build-time');
+        if (el) {
+          var d = new Date(document.lastModified);
+          el.textContent = d.toLocaleString();
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+
+</body>
+</html>

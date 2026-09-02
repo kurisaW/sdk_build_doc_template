@@ -88,10 +88,12 @@ guide/README
                 encoding="utf-8",
             )
             (guide / "README_zh.md").write_text(
-                "# 中文指南\n\n中文正文。\n", encoding="utf-8"
+                "# 中文指南\n\n中文正文。\n## UNIQUE_LOCAL_SECTION\n\nSection body.\n",
+                encoding="utf-8",
             )
             (guide / "README.md").write_text(
-                "# English Guide\n\nEnglish body.\n", encoding="utf-8"
+                "# English Guide\n\nEnglish body.\n## UNIQUE_EN_LOCAL_SECTION\n\nSection body.\n",
+                encoding="utf-8",
             )
 
             roots = build_html_site(
@@ -108,9 +110,29 @@ guide/README
             self.assertIn('lang="zh-CN"', chinese_page)
             self.assertIn("中文指南", chinese_page)
             self.assertNotIn("English Guide</a>", chinese_page)
+            self.assertIn("sdk-page-outline", chinese_page)
+            self.assertNotIn("sdk-local-toc", chinese_page)
+            chinese_global = chinese_page.split(
+                '<div class="sdk-reading-layout"', 1
+            )[0]
+            chinese_local = chinese_page.split(
+                '<aside class="sdk-page-outline"', 1
+            )[1]
+            self.assertNotIn("unique-local-section", chinese_global.lower())
+            self.assertIn("unique-local-section", chinese_local.lower())
             self.assertIn('lang="en"', english_page)
             self.assertIn("English Guide", english_page)
             self.assertNotIn("中文指南</a>", english_page)
+            self.assertIn("sdk-page-outline", english_page)
+            self.assertNotIn("sdk-local-toc", english_page)
+            english_global = english_page.split(
+                '<div class="sdk-reading-layout"', 1
+            )[0]
+            english_local = english_page.split(
+                '<aside class="sdk-page-outline"', 1
+            )[1]
+            self.assertNotIn("unique-en-local-section", english_global.lower())
+            self.assertIn("unique-en-local-section", english_local.lower())
             self.assertIn("../_static_en/", english_page)
             self.assertIn('targetUrl = "README_zh.html"', english_page)
             self.assertIn('targetUrl = "README.html"', chinese_page)
@@ -132,6 +154,25 @@ guide/README
                 "url=./README_zh.html",
                 (output / "index.html").read_text(encoding="utf-8"),
             )
+            navigation_state = (
+                output / "_static" / "navigation_state.js"
+            ).read_text(encoding="utf-8")
+            self.assertIn("sdk-docs-navigation", navigation_state)
+            self.assertIn("restoreExpanded", navigation_state)
+            self.assertIn("isHashLink", navigation_state)
+            self.assertIn("hashchange", navigation_state)
+            self.assertIn("anchorNavigationPending", navigation_state)
+            self.assertIn("}, true);", navigation_state)
+            self.assertIn("enforceSingleTopLevelBranch", navigation_state)
+            self.assertIn("collapseTree", navigation_state)
+            page_outline = (output / "_static" / "page_outline.js").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("IntersectionObserver", page_outline)
+            self.assertIn("scrollIntoView", page_outline)
+            self.assertIn("outlineTarget", page_outline)
+            self.assertIn("resolveHeading", page_outline)
+            self.assertIn("link.textContent = link.textContent", page_outline)
 
 
 if __name__ == "__main__":

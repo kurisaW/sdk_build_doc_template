@@ -24,6 +24,18 @@
     }
 
     async function loadVersionConfig() {
+        // A file:// page cannot read JSON with fetch because browsers apply
+        // CORS rules to local files. Use the embedded config when available,
+        // otherwise let fetchVersionInfo apply its normal single-version
+        // fallback without emitting a console error.
+        if (window.location.protocol === 'file:') {
+            const embedded = getEmbeddedVersionConfig();
+            if (embedded && Array.isArray(embedded.versions) && embedded.versions.length) {
+                return embedded;
+            }
+            return null;
+        }
+
         try {
             const response = await fetch(getVersionConfigUrl(), { cache: 'no-store' });
             if (!response.ok) {

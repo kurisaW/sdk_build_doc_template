@@ -9,4 +9,10 @@
 
 两种模型都会将最终文件清单交给 DocumentCatalog。HTML、PDF、语言判断和资源校验共享这份清单，因此不会出现网页只显示项目首页、PDF 却递归收录第三方文档的差异。
 
+## 全局目录与文章大纲
+
+发现模型决定哪些文档进入站点，导航配置决定这些文档如何出现在左侧目录。模板将文章内部标题交给独立的大纲脚本处理：generation.navigation.maxdepth 为 -1 时保留深层目录入口，titles_only 避免全局树递归展示文章章节，show_local_toc 则在右侧生成当前页面的 h2/h3 树。
+
+page_outline.js 使用标题的纯文本和锚点构建嵌套列表，不复用 Markdown 或代码高亮节点；navigation_state.js 负责每层唯一展开、页面跳转后的路径恢复以及文章内锚点跳转后的状态保留。
+
 在 [模型选型](01_model_selection_zh.md) 中用真实场景作出选择。

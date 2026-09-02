@@ -1,5 +1,60 @@
 {% extends '!layout.html' %}
 
+{# RTD renders the global tree directly in layout.html rather than using
+   Sphinx's html_sidebars. Keep article headings in a separate right-hand
+   outline so deeply nested directories do not consume the document tree and
+   the reading column stays focused on the article. #}
+{% block navigation %}
+  <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="{{ _('Navigation menu') }}">
+    {%- set sdk_toctree = toctree(maxdepth=theme_navigation_depth|int,
+                                  collapse=theme_collapse_navigation|tobool,
+                                  includehidden=theme_includehidden|tobool,
+                                  titles_only=theme_titles_only|tobool) %}
+    {%- if sdk_toctree %}
+      {{ sdk_toctree }}
+    {%- endif %}
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="sdk-reading-layout">
+    <div class="sdk-reading-main">
+      {{ super() }}
+      {% if giscus and giscus.get('enabled') and giscus.get('repo') and giscus.get('repo_id') and (giscus.get('category_id') or giscus.get('category')) %}
+        <div id="giscus_thread" class="giscus" style="margin: 2rem 0;"></div>
+        <script src="https://giscus.app/client.js"
+                data-repo="{{ giscus.get('repo') }}"
+                data-repo-id="{{ giscus.get('repo_id') }}"
+                {% if giscus.get('category_id') %}
+                data-category-id="{{ giscus.get('category_id') }}"
+                {% elif giscus.get('category') %}
+                data-category="{{ giscus.get('category') }}"
+                {% endif %}
+                data-mapping="{{ giscus.get('mapping', 'pathname') }}"
+                data-strict="{{ giscus.get('strict', 0) }}"
+                data-reactions-enabled="{{ giscus.get('reactions_enabled', 1) }}"
+                data-emit-metadata="{{ giscus.get('emit_metadata', 0) }}"
+                data-input-position="{{ giscus.get('input_position', 'bottom') }}"
+                data-theme="{{ giscus.get('theme', 'preferred_color_scheme') }}"
+                data-lang="{{ giscus.get('lang', 'zh-CN') }}"
+                {% if giscus.get('lazy') %} data-loading="lazy"{% endif %}
+                crossorigin="anonymous"
+                async>
+        </script>
+      {% endif %}
+    </div>
+    {%- if show_local_toc and display_toc %}
+      <aside class="sdk-page-outline" role="navigation" aria-label="{{ _('Local table of contents') }}">
+        <div class="sdk-page-outline__title">{{ _('Table of Contents') }}</div>
+        <ul class="sdk-page-outline__list" aria-label="{{ _('Article sections') }}"></ul>
+        {# Keep a source-level fallback for no-JS builds; the interactive list
+           is generated from h2/h3 headings by page_outline.js. #}
+        <div class="sdk-page-outline__fallback" hidden>{{ toc }}</div>
+      </aside>
+    {%- endif %}
+  </div>
+{% endblock %}
+
 {% block footer %}
   {{ super() }}
   <div class="sdk-footer">
@@ -27,32 +82,6 @@
 {% endblock %}
 
 {# 将 giscus 插入到正文（内容）块的末尾，紧跟文章内容之后 #}
-{% block content %}
-  {{ super() }}
-  {% if giscus and giscus.get('enabled') and giscus.get('repo') and giscus.get('repo_id') and (giscus.get('category_id') or giscus.get('category')) %}
-    <div id="giscus_thread" class="giscus" style="margin: 2rem 0;"></div>
-    <script src="https://giscus.app/client.js"
-            data-repo="{{ giscus.get('repo') }}"
-            data-repo-id="{{ giscus.get('repo_id') }}"
-            {% if giscus.get('category_id') %}
-            data-category-id="{{ giscus.get('category_id') }}"
-            {% elif giscus.get('category') %}
-            data-category="{{ giscus.get('category') }}"
-            {% endif %}
-            data-mapping="{{ giscus.get('mapping', 'pathname') }}"
-            data-strict="{{ giscus.get('strict', 0) }}"
-            data-reactions-enabled="{{ giscus.get('reactions_enabled', 1) }}"
-            data-emit-metadata="{{ giscus.get('emit_metadata', 0) }}"
-            data-input-position="{{ giscus.get('input_position', 'bottom') }}"
-            data-theme="{{ giscus.get('theme', 'preferred_color_scheme') }}"
-            data-lang="{{ giscus.get('lang', 'zh-CN') }}"
-            {% if giscus.get('lazy') %} data-loading="lazy"{% endif %}
-            crossorigin="anonymous"
-            async>
-    </script>
-  {% endif %}
-{% endblock %}
-
 {% block extrahead %}
   {{ super() }}
   {% if docs_language %}

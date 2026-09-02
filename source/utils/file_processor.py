@@ -324,7 +324,6 @@ class FileProcessor:
                 return (
                     f'<a href="{url}"{title_attribute}>'
                     f'{match.group("label")}</a>'
-                    '<!-- docs-cross-language-link -->'
                 )
 
             content = pattern.sub(replace_link, content)

@@ -63,6 +63,9 @@ Strict catalog builds reject:
 | `generation.default_page` | Per-language site home; repository-root README fallback also synchronizes its referenced local images |
 | `generation.default_language` | Preferred language selected from actually available languages |
 | `generation.navigation.order` | Display order for top-level directories or categories |
+| `generation.navigation.maxdepth` | Maximum global document-tree depth; `-1` keeps every nested directory reachable |
+| `generation.navigation.titles_only` | Keep section headings out of the global tree (recommended: `true`) |
+| `generation.navigation.show_local_toc` | Show the current article's H2/H3 outline in the right reading rail |
 | `generation.pdf_fonts` | Exact fonts required locally and in CI; missing fonts fail without silent substitution |
 
 `generation.mode` and `generation.output_structure` remain supported for compatibility, but new configurations should use `generation.discovery` and `generation.navigation`.

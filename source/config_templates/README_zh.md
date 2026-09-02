@@ -65,6 +65,9 @@ python build_local.py --clean
 | `generation.default_page` | 各语言网站首页；源目录没有时使用仓库根同语言 README，并同步其中引用的本地图片 |
 | `generation.default_language` | 首选语言，必须从实际可用语言中选择 |
 | `generation.navigation.order` | 顶层目录或分类的显示顺序 |
+| `generation.navigation.maxdepth` | 全局文档树的最大深度；`-1` 保证任意多级目录都可访问 |
+| `generation.navigation.titles_only` | 全局树只显示目录和文章标题，不展开文章章节（推荐 `true`） |
+| `generation.navigation.show_local_toc` | 在全局树下显示当前文章的章节目录 |
 | `generation.pdf_fonts` | 本地与 CI 必须安装的精确 PDF 字体；缺失时构建失败，不静默替换 |
 
 `generation.mode`、`generation.output_structure` 仍受兼容，但新配置应以 `generation.discovery` 和 `generation.navigation` 为准。

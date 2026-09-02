@@ -48,6 +48,57 @@ sphinx_config = config.get('sphinx', {})
 repository_config = config.get('repository', {})
 generation_config = config.get('generation', {})
 giscus_config = config.get('giscus', {})
+
+
+def configured_navigation_depth():
+    """Read the shared navigation depth used by generated toctrees and the sidebar."""
+    navigation_config = generation_config.get('navigation', {}) or {}
+    configured = navigation_config.get(
+        'maxdepth', generation_config.get('navigation_depth', -1)
+    )
+    if configured is None:
+        return -1
+    try:
+        depth = int(configured)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            'generation.navigation.maxdepth must be an integer'
+        ) from exc
+    if depth < -1:
+        raise ValueError(
+            'generation.navigation.maxdepth must be greater than or equal to -1'
+        )
+    return depth
+
+
+def configured_navigation_bool(option_name, default):
+    """Read a boolean navigation option from config.yaml.
+
+    YAML normally gives us a real bool, but accepting common string/number
+    forms keeps hand-written project configurations predictable.
+    """
+    navigation_config = generation_config.get('navigation', {}) or {}
+    configured = navigation_config.get(option_name, default)
+    if configured is None:
+        return bool(default)
+    if isinstance(configured, bool):
+        return configured
+    if isinstance(configured, int) and configured in (0, 1):
+        return bool(configured)
+    if isinstance(configured, str):
+        normalized = configured.strip().lower()
+        if normalized in {'true', 'yes', 'on', '1'}:
+            return True
+        if normalized in {'false', 'no', 'off', '0'}:
+            return False
+    raise ValueError(
+        f'generation.navigation.{option_name} must be a boolean'
+    )
+
+
+navigation_depth = configured_navigation_depth()
+navigation_titles_only = configured_navigation_bool('titles_only', True)
+show_local_toc = configured_navigation_bool('show_local_toc', True)
 configured_build_languages = tuple(
     language.strip()
     for language in os.environ.get("DOCS_AVAILABLE_LANGUAGES", "").split(",")
@@ -187,7 +238,7 @@ myst_url_schemes = ('http', 'https', 'mailto', 'ftp')
 # 图片路径配置
 html_extra_path = []
 html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css', 'language_switch.css', 'dark_mode.css']
-html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_switch.js']
+html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_switch.js', 'navigation_state.js', 'page_outline.js']
 
 # 配置图片路径处理
 html_favicon = None
@@ -199,8 +250,8 @@ html_show_copyright = True
 
 # 配置导航
 html_theme_options = {
-    'navigation_depth': 4,
-    'titles_only': False,
+    'navigation_depth': navigation_depth,
+    'titles_only': navigation_titles_only,
     'collapse_navigation': False,
     'sticky_navigation': True,
     'includehidden': True,
@@ -213,12 +264,7 @@ html_copy_source = False
 
 # 配置导航结构
 html_sidebars = {
-    '**': [
-        'globaltoc.html',
-        'relations.html',
-        'sourcelink.html',
-        'searchbox.html',
-    ]
+    '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html']
 }
 
 # 配置toctree选项
@@ -281,6 +327,8 @@ def derive_edit_base_url():
 
 html_context = {
     'edit_base_url': derive_edit_base_url(),
+    'global_navigation_titles_only': navigation_titles_only,
+    'show_local_toc': show_local_toc,
     # 将 giscus 配置传入模板；若未启用或缺关键字段，模板中将忽略
     'giscus': giscus_config or {},
 }

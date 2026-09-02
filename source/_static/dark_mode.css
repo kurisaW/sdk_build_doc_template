@@ -229,3 +229,26 @@
 [data-theme="dark"] .docs-language-switch__separator {
     color: #7d8590;
 }
+
+[data-theme="dark"] .sdk-page-outline {
+    border-left-color: var(--sidebar-border);
+}
+
+[data-theme="dark"] .sdk-page-outline__title {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .sdk-page-outline a {
+    color: #8b949e;
+}
+
+[data-theme="dark"] .sdk-page-outline a:hover,
+[data-theme="dark"] .sdk-page-outline a:focus {
+    background-color: var(--hover-bg);
+    color: var(--link-color);
+}
+
+[data-theme="dark"] .sdk-page-outline a.is-active {
+    border-left-color: var(--active-bg);
+    color: var(--link-color);
+}

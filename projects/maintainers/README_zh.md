@@ -12,6 +12,10 @@
 | pdf_builder 与 pdf_environment | 验证 PDF 环境，生成并校验文件 |
 | build.py 与 build_manager | 解析版本矩阵，隔离 worktree 并汇总产物 |
 
+## Web 导航实现边界
+
+layout.html 只负责输出结构，不把文章章节混入全局 toctree。custom.css 以内容容器为基准计算正文和大纲宽度，并在空间不足时堆叠；page_outline.js 只消费当前正文的 h2/h3，使用纯文本生成嵌套层级和阅读高亮；navigation_state.js 只管理左侧树的唯一展开路径和跨页面恢复。修改其中任一模块时，应同时检查桌面三栏、窄屏单列、深层目录和页内锚点跳转。
+
 ## 贡献要求
 
 修改发现或导航逻辑时，至少覆盖 recursive_tree、project_catalog、中文、英文、双语和缺失翻译回退。修改 PDF 逻辑时，除单元测试外，应在包含 XeLaTeX 和配置字体的环境中验证生成文件有效。

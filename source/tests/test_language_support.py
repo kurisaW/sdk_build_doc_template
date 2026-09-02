@@ -226,6 +226,63 @@ class LanguageSupportTests(unittest.TestCase):
                 (output / "guide" / "README.md").read_text(encoding="utf-8"),
             )
 
+    def test_nested_directory_navigation_is_unlimited_by_default(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            projects = root / "projects"
+            output = root / "docs"
+            nested = projects / "guide" / "topic"
+            nested.mkdir(parents=True)
+            documents = {
+                "README_zh.md": "# 首页\n",
+                "guide/README_zh.md": "# 指南\n",
+                "guide/topic/README_zh.md": "# 主题\n",
+                "guide/topic/01_article_zh.md": "# 文章\n",
+            }
+            for relative_name, content in documents.items():
+                target = projects / relative_name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(content, encoding="utf-8")
+
+            processor = FileProcessor(
+                str(projects), str(output), dict(GENERATION_CONFIG)
+            )
+            processor.sync_document_tree()
+            root_doc = IndexGenerator(str(output), processor).generate_all_indexes(
+                {}, {}, {"title": "测试文档"}
+            )
+
+            self.assertEqual(root_doc, "README_zh")
+            self.assertIn(":maxdepth: -1", (output / "README_zh.md").read_text(encoding="utf-8"))
+            self.assertIn(
+                "01_article_zh",
+                (output / "guide" / "topic" / "README_zh.md").read_text(
+                    encoding="utf-8"
+                ),
+            )
+
+    def test_navigation_depth_can_be_configured(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            projects = root / "projects"
+            output = root / "docs"
+            projects.mkdir()
+            (projects / "README_zh.md").write_text("# 首页\n", encoding="utf-8")
+            (projects / "guide").mkdir()
+            (projects / "guide" / "README_zh.md").write_text(
+                "# 指南\n", encoding="utf-8"
+            )
+            generation = dict(GENERATION_CONFIG)
+            generation["navigation"] = {"maxdepth": 6}
+
+            processor = FileProcessor(str(projects), str(output), generation)
+            processor.sync_document_tree()
+            IndexGenerator(str(output), processor).generate_all_indexes(
+                {}, {}, {"title": "测试文档"}
+            )
+
+            self.assertIn(":maxdepth: 6", (output / "README_zh.md").read_text(encoding="utf-8"))
+
     def test_nested_bilingual_readme_links_target_the_built_html_pages(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

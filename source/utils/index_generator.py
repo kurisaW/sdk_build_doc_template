@@ -23,6 +23,7 @@ class IndexGenerator:
         self.file_processor = file_processor
         self.catalog = getattr(file_processor, "catalog", None)
         self.generation_config = file_processor.config
+        self.navigation_maxdepth = self._navigation_maxdepth()
         if self.catalog is not None and self.catalog.discovery_mode == "project_catalog":
             self.available_languages = self.catalog.available_languages()
         else:
@@ -70,6 +71,31 @@ class IndexGenerator:
             key=self._natural_key,
         )
 
+    def _navigation_maxdepth(self) -> int:
+        """Return the configured Sphinx navigation depth.
+
+        Sphinx treats zero and negative maxdepth values as unlimited.  We use
+        ``-1`` as the default so nested documentation trees remain visible in
+        the global sidebar without requiring project-specific path rules.
+        """
+        navigation = self.generation_config.get("navigation", {}) or {}
+        configured = navigation.get(
+            "maxdepth", self.generation_config.get("navigation_depth", -1)
+        )
+        if configured is None:
+            return -1
+        try:
+            maxdepth = int(configured)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "generation.navigation.maxdepth 必须是整数"
+            ) from exc
+        if maxdepth < -1:
+            raise ValueError(
+                "generation.navigation.maxdepth 必须大于或等于 -1"
+            )
+        return maxdepth
+
     def _language_path(self, option_name: str, language: str) -> Path:
         configured = configured_language_paths(
             self.generation_config, option_name
@@ -106,7 +132,7 @@ class IndexGenerator:
                 ".. generated-navigation",
                 "",
                 ".. toctree::",
-                "   :maxdepth: 4",
+                f"   :maxdepth: {self.navigation_maxdepth}",
                 "   :hidden:",
                 "",
                 *(f"   {docname}" for docname in docnames),
@@ -118,7 +144,7 @@ class IndexGenerator:
                 "",
                 self.NAVIGATION_MARKER,
                 "```{toctree}",
-                ":maxdepth: 4",
+                f":maxdepth: {self.navigation_maxdepth}",
                 ":hidden:",
                 "",
                 *docnames,
@@ -165,7 +191,7 @@ class IndexGenerator:
             lines.extend(
                 [
                     ".. toctree::",
-                    "   :maxdepth: 4",
+                    f"   :maxdepth: {self.navigation_maxdepth}",
                     "",
                     *(f"   {self._relative_docname(entry, directory)}" for entry in entries),
                     "",
@@ -202,7 +228,7 @@ class IndexGenerator:
             lines.extend(
                 [
                     ".. toctree::",
-                    "   :maxdepth: 2",
+                    f"   :maxdepth: {self.navigation_maxdepth}",
                     "",
                     *(
                         f"   {self._relative_docname(entry, page.parent)}"
@@ -271,7 +297,7 @@ class IndexGenerator:
                 lines.extend(
                     [
                         ".. toctree::",
-                        "   :maxdepth: 3",
+                        f"   :maxdepth: {self.navigation_maxdepth}",
                         "",
                         *(f"   {self._docname(page)}" for page in category_pages),
                         "",
@@ -444,7 +470,7 @@ class IndexGenerator:
                 lines.extend(
                     [
                         ".. toctree::",
-                        "   :maxdepth: 4",
+                        f"   :maxdepth: {self.navigation_maxdepth}",
                         "",
                         *(f"   {self._docname(entry)}" for entry in fallback_entries),
                         "",

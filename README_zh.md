@@ -258,7 +258,7 @@ HTML、语言识别、文件同步和 PDF 都使用同一个 `DocumentCatalog`�
 
 ### 排序与标题
 
-- 顶层章节优先按 `generation.navigation.order` 排序，未列出的已配置分类自然追加；`generation.output_structure` 仅作为旧配置兼容键。
+- 顶层章节优先按 `generation.navigation.order` 排序，未列出的已配置分类自然追加；已移除的 `generation.mode` 和 `generation.output_structure` 会触发迁移报错。
 - 目录内文档按路径自然排序，可使用 `01_`、`02_` 文件名前缀稳定顺序。
 - `categories.<path>.name` 和 `name_en` 控制生成页及 PDF 的章节显示名称。
 - 每篇文章建议只保留一个一级标题，不手工重复文件名前缀中的序号。

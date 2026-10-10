@@ -1,6 +1,6 @@
 /* Shared responsive sizing tokens. */
 :root {
-    --sdk-reading-max: clamp(680px, 56vw, 960px);
+    --sdk-reading-max: clamp(760px, 66vw, 1120px);
     --sdk-outline-width: clamp(220px, 16vw, 280px);
     --sdk-layout-gap: clamp(1rem, 2vw, 2rem);
     --sdk-content-pad: clamp(1rem, 2vw, 2.5rem);
@@ -12,7 +12,7 @@
 /* Keep RTD's content area wide enough for the three-column reading layout. */
 .wy-nav-content {
     width: 100%;
-    max-width: min(1700px, 100%) !important;
+    max-width: none !important;
     margin: 0;
     padding: clamp(1.25rem, 2vw, 1.618em) var(--sdk-content-pad);
     box-sizing: border-box;
@@ -52,22 +52,19 @@
     line-height: 1.45;
 }
 
-/* Start the article directly after the global navigation. Any surplus desktop
-   width stays to the right of the local outline instead of before the text. */
 .sdk-reading-layout {
     display: grid;
-    grid-template-columns: minmax(0, var(--sdk-reading-max)) minmax(220px, var(--sdk-outline-width));
+    grid-template-columns: minmax(0, 1fr) var(--sdk-outline-width);
     gap: var(--sdk-layout-gap);
     align-items: start;
     width: 100%;
-    max-width: min(1700px, 100%);
     margin: 0;
     box-sizing: border-box;
 }
 
 @supports (container-type: inline-size) {
     .sdk-reading-layout {
-        --sdk-reading-max: clamp(680px, 56cqi, 960px);
+        --sdk-reading-max: clamp(760px, 66cqi, 1120px);
     }
 }
 
@@ -76,11 +73,242 @@
     min-width: 0;
     width: 100%;
     max-width: var(--sdk-reading-max);
-    justify-self: stretch;
+    justify-self: center;
 }
 
-/* Establish a predictable reading rhythm instead of inheriting a mixture of
-   browser and theme defaults for every document. */
+.sdk-reading-main .rst-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+}
+
+.sdk-reading-main .rst-content .sdk-image-trigger {
+    display: inline-block;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 2%), 0 8px 24px rgb(0 0 0 / 2%);
+    transition: transform 180ms ease-out;
+}
+
+.sdk-reading-main .rst-content p:has(> .sdk-image-trigger:only-child) {
+    text-align: center;
+}
+
+.sdk-reading-main .rst-content .sdk-image-trigger > img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+}
+
+.sdk-reading-main .rst-content .sdk-image-trigger--inline {
+    display: inline-flex;
+    margin: 0 .15em;
+    vertical-align: middle;
+    border-radius: 3px;
+    box-shadow: none;
+}
+
+.sdk-reading-main .rst-content img.sdk-inline-image {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sdk-image-trigger:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.sdk-image-trigger:focus-visible,
+.sdk-image-viewer button:focus-visible,
+.sdk-image-viewer__stage:focus-visible {
+    outline: 2px solid #2980b9;
+    outline-offset: 3px;
+}
+
+.sdk-image-viewer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    background: transparent;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.sdk-image-viewer[open] {
+    display: block;
+}
+
+.sdk-image-viewer::backdrop {
+    background: rgb(0 0 0 / 88%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.sdk-image-viewer__toolbar {
+    position: absolute;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 100px;
+    background: rgb(255 255 255 / 12%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 20%);
+}
+
+.sdk-image-viewer button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sdk-image-viewer button:hover {
+    background: rgb(255 255 255 / 15%);
+}
+
+.sdk-image-viewer button:active {
+    transform: scale(.92);
+}
+
+.sdk-image-viewer button:disabled {
+    opacity: .3;
+    cursor: default;
+}
+
+.sdk-image-viewer button:disabled:hover {
+    background: transparent;
+}
+
+.sdk-image-viewer .sdk-image-viewer__close {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top));
+    right: max(20px, env(safe-area-inset-right));
+    background: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.sdk-image-viewer output {
+    min-width: 60px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+}
+
+.sdk-image-viewer__stage {
+    position: absolute;
+    inset: max(76px, calc(env(safe-area-inset-top) + 56px)) 4vw max(120px, calc(env(safe-area-inset-bottom) + 100px));
+    overflow: hidden;
+    touch-action: none;
+    animation: sdk-image-enter 180ms ease-out;
+}
+
+.sdk-image-viewer__canvas {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.sdk-image-viewer__canvas img {
+    display: block;
+    max-width: none;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 50%);
+    transform-origin: center;
+    transition: transform 180ms ease-out;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.sdk-image-viewer__stage.is-interacting img {
+    transition: none;
+    cursor: grabbing;
+}
+
+.sdk-image-viewer__hint {
+    position: absolute;
+    bottom: max(92px, calc(env(safe-area-inset-bottom) + 92px));
+    left: 1rem;
+    right: 1rem;
+    margin: 0;
+    color: rgb(255 255 255 / 75%);
+    text-align: center;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+@keyframes sdk-image-enter {
+    from { opacity: 0; transform: scale(.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 700px) {
+    .sdk-image-viewer__stage {
+        left: 2vw;
+        right: 2vw;
+    }
+
+    .sdk-image-viewer__canvas img {
+        border-radius: 4px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sdk-image-trigger {
+        transition: none !important;
+    }
+
+    .sdk-image-trigger:hover {
+        transform: none;
+    }
+
+    .sdk-image-viewer__stage {
+        animation: none;
+    }
+
+    .sdk-image-viewer__canvas img {
+        transition: none;
+    }
+}
+
 .sdk-reading-main .rst-content h1,
 .sdk-reading-main .rst-content h2,
 .sdk-reading-main .rst-content h3,
@@ -91,18 +319,23 @@
 }
 
 .sdk-reading-main .rst-content h1 {
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.35rem;
     line-height: 1.2;
 }
 
 .sdk-reading-main .rst-content h2 {
-    margin: clamp(2rem, 4vw, 3rem) 0 .8rem;
+    margin: 2.15rem 0 .75rem;
     line-height: 1.3;
 }
 
 .sdk-reading-main .rst-content h3 {
-    margin: clamp(1.5rem, 3vw, 2.25rem) 0 .6rem;
+    margin: 1.6rem 0 .55rem;
     line-height: 1.35;
+}
+
+.sdk-reading-main .rst-content .document :is(h4, h5, h6) {
+    margin-top: 1.25rem;
+    margin-bottom: .45rem;
 }
 
 .sdk-reading-main .rst-content p {
@@ -114,8 +347,84 @@
     line-height: 1.65;
 }
 
+.sdk-reading-main .rst-content .document p:not(.admonition-title):not(table p) {
+    margin-bottom: 1.125rem;
+}
+
+.sdk-reading-main .rst-content .document li > p:not(.admonition-title):not(table p) {
+    margin-bottom: .5rem;
+}
+
+.sdk-reading-main .rst-content .document li > p:last-child:not(table p) {
+    margin-bottom: 0;
+}
+
+.sdk-reading-main .rst-content blockquote {
+    margin: 1.25rem 0 1.5rem;
+    padding: 1.125rem 1.375rem;
+    background: #f2f7fe;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgb(0 40 100 / 5%), 0 6px 20px -10px rgb(0 40 100 / 12%);
+    color: #1d1d1f;
+}
+
+.sdk-reading-main .rst-content blockquote::before {
+    content: "Tips:";
+    display: inline;
+    margin-right: .3em;
+    color: #004499;
+    font-weight: 600;
+}
+
+.sdk-reading-main .rst-content blockquote > div:only-child,
+.sdk-reading-main .rst-content blockquote > div:only-child > p:only-child {
+    display: inline;
+}
+
+.sdk-reading-main .rst-content blockquote > div:only-child > p:only-child {
+    margin-bottom: 0 !important;
+}
+
+.sdk-reading-main .rst-content blockquote p {
+    margin-bottom: 0;
+}
+
+.sdk-reading-main .rst-content blockquote a {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.sdk-reading-main .rst-content blockquote a:hover {
+    color: #004499;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+[data-theme="dark"] .sdk-reading-main .rst-content blockquote {
+    background: #17283b;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 18%), 0 6px 20px -10px rgb(0 0 0 / 35%);
+    color: #e6edf3;
+}
+
+[data-theme="dark"] .sdk-reading-main .rst-content blockquote::before {
+    color: #8cc5ff;
+}
+
+[data-theme="dark"] .sdk-reading-main .rst-content blockquote a {
+    color: #58a6ff;
+}
+
+@media (max-width: 700px) {
+    .sdk-reading-main .rst-content blockquote {
+        padding: 1rem 1.125rem;
+        border-radius: 14px;
+    }
+}
+
 .sdk-reading-layout--no-outline {
-    grid-template-columns: minmax(0, var(--sdk-reading-max));
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .sdk-reading-layout--no-outline .sdk-reading-main {
@@ -127,6 +436,8 @@
     position: sticky;
     top: 1.618em;
     min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     max-height: calc(100vh - 3.236em);
     overflow-y: auto;
     padding: 1.25rem 0 1.25rem var(--sdk-outline-inset);

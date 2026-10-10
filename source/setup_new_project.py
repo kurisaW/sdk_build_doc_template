@@ -104,12 +104,17 @@ def create_config_interactive():
             'copy_dirs': [
                 'figures'
             ],
-            'output_structure': [
-                'basic',
-                'driver',
-                'component',
-                'protocol'
-            ]
+            'discovery': {
+                'mode': 'project_catalog',
+                'entry_files': {'zh': 'README_zh.md', 'en': 'README.md'},
+                'asset_globs': ['figures/**', '*.html', '*.htm', '*.css', '*.js'],
+                'unmatched_projects': 'error',
+                'duplicate_categories': 'error',
+            },
+            'navigation': {
+                'mode': 'categories',
+                'order': ['basic', 'driver', 'component', 'protocol'],
+            },
         },
         'sphinx': {
             'theme': 'sphinx_rtd_theme',

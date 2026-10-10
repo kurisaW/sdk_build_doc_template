@@ -5,9 +5,9 @@ project:
   title_en: "SDK Documentation Build Template"
   description: "从结构化 Markdown 生成双语文档站、多版本入口与严格排版 PDF。"
   description_en: "Generate a bilingual documentation site, versioned entry points, and strictly typeset PDFs from structured Markdown."
-  version: "2.0.0"
+  version: "3.0.0"
   author: "Kurisaw"
-  copyright: "2025, KurisaW"
+  copyright: "2026, KurisaW"
   # language: "zh_CN"  # 注释掉固定语言配置，支持中英文双语
   website: "kurisaw.eu.org"
 
@@ -72,9 +72,6 @@ categories:
 
 # 文档生成配置
 generation:
-  # 兼容旧配置；实际收录范围与导航结构分别由 discovery/navigation 控制。
-  mode: "directory_tree"
-
   # 文档树模式递归同步 projects 中受支持的文档与资源。
   discovery:
     mode: "recursive_tree"
@@ -136,19 +133,10 @@ generation:
     - ".gif"
     - ".svg"
     - ".webp"
-
-  # 旧版排序键，保留用于兼容早期构建脚本。
-  output_structure:
-    - "overview"
-    - "getting_started"
-    - "authoring"
-    - "content_models"
-    - "build_outputs"
-    - "versions_deployment"
-    - "showcases"
-    - "reference"
-    - "troubleshooting"
-    - "maintainers"
+    - ".html"
+    - ".htm"
+    - ".css"
+    - ".js"
 
 # Sphinx 配置
 sphinx:

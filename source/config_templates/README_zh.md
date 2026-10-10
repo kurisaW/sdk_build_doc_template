@@ -32,6 +32,8 @@ python build_local.py --clean
 - 递归同步 `generation.sync_extensions` 允许的文件。
 - 每个目录优先使用 `generation.directory_index` 指定的 README；缺失时生成索引。
 - `generation.navigation.order` 中的键应与 `projects_dir` 下的顶层文档目录及 `categories` 键一致。
+- `generation.navigation.directory_order` 按父目录相对路径配置直接子目录的文件夹名顺序；网页和 PDF 共用，未列出的子目录按自然顺序追加。模板提供应用篇六个子目录的示例，可按实际目录修改。
+- HTML 动画及其 CSS/JS 已加入 `sync_extensions`；相对路径会随原目录结构保留。
 - PDF 保留目录 README 的一级标题，不收录其导航正文；README 是目录唯一文档时按正文处理。
 - 语言识别优先使用 `projects_dir` 根 README；根目录没有语言 README 时才合并仓库根与各文档目录的标记。
 
@@ -42,6 +44,8 @@ python build_local.py --clean
 - `categories.*.patterns` 选择项目根目录。无 `/` 的模式只匹配一级目录。
 - 嵌套项目必须显式配置完整相对路径，不能依赖递归 README 搜索。
 - 每个项目只收录 `generation.discovery.entry_files` 和 `asset_globs`。
+- 模板同时同步项目根的 HTML/HTM/CSS/JS 和 `figures/**`。动画依赖其他目录时，应明确增加相应 `asset_globs`，例如 `demos/**`；不会自动扩大到全部源码目录。
+- 分类顺序由 `navigation.order` 控制；目录树的 `directory_order` 不改变分类内项目顺序。
 - 项目入口 README 是正文，会同时进入 HTML 和 PDF；供应商或包管理目录中的 README 不会进入构建。
 - 不同项目可只提供一种语言；目录清单同时包含中英文入口时才显示切换 UI。
 - `unmatched_projects: error` 和 `duplicate_categories: error` 建议始终保留。
@@ -70,4 +74,8 @@ python build_local.py --clean
 | `generation.navigation.show_local_toc` | 在全局树下显示当前文章的章节目录 |
 | `generation.pdf_fonts` | 本地与 CI 必须安装的精确 PDF 字体；缺失时构建失败，不静默替换 |
 
-`generation.mode`、`generation.output_structure` 仍受兼容，但新配置应以 `generation.discovery` 和 `generation.navigation` 为准。
+`generation.mode` 和 `generation.output_structure` 已移除，使用这些字段会报错。请迁移到 `generation.discovery.mode`、`generation.navigation.mode` 和 `generation.navigation.order`。
+
+## 切换模式
+
+请同时调整 `generation.discovery.mode`、`generation.navigation.mode` 和分类规则，不要仅修改旧字段 `generation.mode`。两种推荐组合分别为 `recursive_tree` + `directory_tree` 和 `project_catalog` + `categories`。切换为项目清单时需配置 `entry_files`、`asset_globs` 和 `categories.*.patterns`，并调整 `repository.projects_dir`。构建前按使用示例执行 `--clean`；生成清单会清理旧模式同步的文件，但不会修改原始项目文档。

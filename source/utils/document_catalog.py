@@ -66,11 +66,18 @@ class DocumentCatalog:
         self.projects_root = Path(projects_root).resolve()
         self.categories = dict(categories or {})
         self.generation = dict(generation or {})
+        obsolete = {"mode", "output_structure"}.intersection(self.generation)
+        if obsolete:
+            raise ValueError(
+                "Removed generation fields: " + ", ".join(sorted(obsolete))
+                + "; use generation.discovery.mode and generation.navigation.mode/order instead"
+            )
         self.discovery = dict(self.generation.get("discovery", {}) or {})
         self.navigation = dict(self.generation.get("navigation", {}) or {})
         self.discovery_mode = self._discovery_mode()
         self.navigation_mode = self._navigation_mode()
         self.navigation_order = self._navigation_order()
+        self.directory_order = self._directory_order()
         self.entries: Tuple[DocumentEntry, ...] = ()
         self.category_projects: Dict[str, Tuple[Path, ...]] = {}
 
@@ -103,8 +110,7 @@ class DocumentCatalog:
         configured = str(self.discovery.get("mode", "") or "").strip()
         if configured:
             return configured
-        legacy = str(self.generation.get("mode", "") or "").strip()
-        return "project_catalog" if legacy == "project_catalog" else "recursive_tree"
+        return "recursive_tree"
 
     def _navigation_mode(self) -> str:
         configured = str(self.navigation.get("mode", "") or "").strip()
@@ -113,9 +119,7 @@ class DocumentCatalog:
         return "categories" if self.discovery_mode == "project_catalog" else "directory_tree"
 
     def _navigation_order(self) -> Tuple[str, ...]:
-        configured = self.navigation.get("order")
-        if configured is None:
-            configured = self.generation.get("output_structure", [])
+        configured = self.navigation.get("order", [])
         if not isinstance(configured, list):
             raise ValueError("generation.navigation.order 必须是分类名称列表")
         return tuple(str(item) for item in configured)
@@ -146,6 +150,39 @@ class DocumentCatalog:
                 "project_catalog 发现模式必须配合 generation.navigation.mode=categories"
             )
 
+    def _directory_order(self) -> Dict[str, Tuple[str, ...]]:
+        configured = self.navigation.get("directory_order", {})
+        if not isinstance(configured, dict):
+            raise ValueError("generation.navigation.directory_order must be a mapping")
+        result = {}
+        for parent, children in configured.items():
+            parent_path = self._safe_relative_path(parent, "directory_order")
+            if not isinstance(children, list) or any(
+                not isinstance(child, str) or len(Path(child).parts) != 1
+                or child in {".", ".."} or "/" in child or "\\" in child
+                or ":" in child
+                for child in children
+            ):
+                raise ValueError("directory_order values must be lists of child directory names")
+            if len(set(children)) != len(children):
+                raise ValueError("directory_order contains duplicate child directories")
+            result[parent_path.as_posix()] = tuple(children)
+        return result
+
+    def tree_sort_key(self, relative_path: Path):
+        key = []
+        parent = Path(".")
+        for name in relative_path.parts:
+            priority = self.directory_order.get(parent.as_posix(), ())
+            rank = priority.index(name) if name in priority else len(priority)
+            natural = tuple(
+                (0, int(part)) if part.isdigit() else (1, part.casefold())
+                for part in re.split(r"(\d+)", name)
+            )
+            key.append((rank, natural))
+            parent /= name
+        return tuple(key)
+
     @staticmethod
     def _safe_relative_path(value: str, option: str) -> Path:
         path = Path(str(value).replace("\\", "/"))
@@ -163,7 +200,8 @@ class DocumentCatalog:
 
     def _sync_extensions(self) -> set:
         defaults = [
-            ".md", ".rst", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"
+            ".md", ".rst", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
+            ".html", ".htm", ".css", ".js"
         ]
         configured = self.generation.get("sync_extensions", defaults) or defaults
         return {

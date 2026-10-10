@@ -71,9 +71,6 @@ categories:
 # 文档生成配置
 # ============================================================================
 generation:
-  # 兼容旧配置；新项目应通过 discovery/navigation 分别控制收录范围和导航
-  mode: "directory_tree"
-
   # 文档树模式：递归同步 projects 下受支持的文档和资源
   discovery:
     mode: "recursive_tree"
@@ -86,6 +83,8 @@ generation:
     maxdepth: -1
     titles_only: true
     show_local_toc: true
+    # Optional child ordering for directory_tree; paths are relative to projects_dir.
+    directory_order: {}
     order:
       - "start"
       - "basic"
@@ -133,6 +132,10 @@ generation:
     - ".gif"
     - ".svg"
     - ".webp"
+    - ".html"
+    - ".htm"
+    - ".css"
+    - ".js"
 
   # 以下 copy_files/copy_dirs 保留用于兼容旧模板配置
   # 要复制的文件列表
@@ -150,14 +153,6 @@ generation:
     # - "docs"
     # - "examples"
   
-  # 旧版排序键，保留用于兼容早期模板；新配置使用 navigation.order
-  output_structure:
-    - "start"
-    - "basic"
-    - "driver"
-    - "component"
-    - "protocol"
-
 # ============================================================================
 # Sphinx 配置
 # ============================================================================
@@ -194,5 +189,5 @@ sphinx:
 # 2. 修改 project 部分的所有字段
 # 3. 修改 repository.name 为你的仓库名
 # 4. directory_tree 模式下，让 categories 键名与 projects 下的文档目录一致
-# 5. 设置 language_detection、default_page、directory_index 和 output_structure
+# 5. 设置 language_detection、default_page、directory_index 和 navigation.order
 # 6. 运行 python build_local.py --clean 生成文档

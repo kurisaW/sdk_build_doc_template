@@ -258,7 +258,7 @@ This rule applies to `recursive_tree`. A directory README may contain an introdu
 
 ### Ordering and headings
 
-- Top-level sections follow `generation.navigation.order`; configured but unlisted categories are appended naturally. `generation.output_structure` remains a legacy compatibility key.
+- Top-level sections follow `generation.navigation.order`; configured but unlisted categories are appended naturally. Removed fields `generation.mode` and `generation.output_structure` cause a migration error.
 - Documents are naturally sorted by path. Prefixes such as `01_` and `02_` provide stable explicit ordering.
 - `categories.<path>.name` and `name_en` control generated page and PDF section labels.
 - Each article should normally contain one level-one heading without duplicating its filename prefix.

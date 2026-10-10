@@ -208,7 +208,7 @@ class DocumentScanner:
         self.html_dir = html_dir
         self.projects_root = projects_root
         self.config_path = config_path or (Path(__file__).parent / 'config.yaml')
-        # 分类与顺序：从 config.yaml 的 generation.output_structure 读取，如果缺省则按默认顺序
+        # 分类与顺序：从 config.yaml 的 generation.navigation.order 读取，如果缺省则按默认顺序
         self.categories = {}
         self.category_name_map = {}
         self.category_order: List[str] = []
@@ -225,11 +225,7 @@ class DocumentScanner:
                 cfg_cats = (cfg.get('categories') or {})
                 generation = cfg.get('generation', {}) or {}
                 navigation = generation.get('navigation', {}) or {}
-                out_struct = (
-                    navigation.get('order')
-                    if navigation.get('order') is not None
-                    else generation.get('output_structure', [])
-                ) or []
+                out_struct = navigation.get('order', []) or []
                 configured_indexes = generation.get('directory_index', {}) or {}
                 if isinstance(configured_indexes, dict):
                     for language in ('zh', 'en'):
@@ -239,7 +235,7 @@ class DocumentScanner:
                 if out_struct:
                     self.configured_category_order = list(out_struct)
                     self.category_order = list(out_struct)
-                # 所有已配置目录都保留显示名称；output_structure 只控制优先顺序。
+                # 所有已配置目录都保留显示名称；navigation.order 只控制优先顺序。
                 for key, configured_node in cfg_cats.items():
                     node = configured_node or {}
                     name_cn = node.get('name') or key
@@ -314,12 +310,7 @@ class DocumentScanner:
                 markdown_files.append(path)
 
             def natural_key(path: Path):
-                relative = path.relative_to(category_dir).as_posix()
-                parts = [
-                    (0, int(part)) if part.isdigit() else (1, part.casefold())
-                    for part in re.split(r'(\d+)', relative)
-                ]
-                return parts
+                return self.catalog.tree_sort_key(path.relative_to(self.projects_root))
 
             for markdown_file in sorted(markdown_files, key=natural_key):
                 relative_path = markdown_file.relative_to(category_dir)
@@ -515,10 +506,10 @@ class PDFGeneratorV2:
             # 记录章节结构来源（动态/硬编码）
             order = getattr(self.scanner, 'category_order', None)
             if order:
-                print("[OK] 章节结构: 动态 (来自 config.yaml:generation.output_structure)")
+                print("[OK] 章节结构: 动态 (来自 config.yaml:generation.navigation.order)")
                 print("  顺序: " + ", ".join(order))
             else:
-                print("[OK] 章节结构: 硬编码回退 (未在 config.yaml 中找到 output_structure)")
+                print("[OK] 章节结构: 硬编码回退 (未在 config.yaml 中找到 navigation.order)")
 
             # 2. 生成正文内容（先生成正文以便收集目录项）
             print("2. 生成正文内容...")
@@ -1335,11 +1326,23 @@ class PDFGeneratorV2:
         }}
         
         blockquote {{
-            border-left: 4px solid #e74c3c;
-            margin: 1.5em 0;
-            padding: 1em 1.5em;
-            background: #fdf2f2;
-            font-style: italic;
+            margin: 1.25em 0 1.5em;
+            padding: 1.125em 1.375em;
+            background: #f2f7fe;
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(0, 40, 100, 0.05), 0 6px 20px -10px rgba(0, 40, 100, 0.12);
+            color: #1d1d1f;
+            font-style: normal;
+        }}
+
+        blockquote p {{ margin: 0; }}
+
+        blockquote::before {{
+            content: "Tips:";
+            font-weight: 600;
+            color: #004499;
+            margin-right: .3em;
         }}
         
         /* 改进表格样式 */
@@ -1805,6 +1808,99 @@ class PDFGeneratorV2:
         self._pdf_wrapper_paths.append(wrapper)
         return wrapper
 
+    def _convert_latex_svg(self, svg_file: Path, output_pdf: Path) -> bool:
+        from html import escape
+        import math
+        from xml.etree import ElementTree
+
+        inkscape = shutil.which("inkscape")
+        if not inkscape:
+            for candidate in (
+                Path(r"C:\Program Files\Inkscape\bin\inkscape.exe"),
+                Path(r"C:\Program Files\Inkscape\inkscape.exe"),
+            ):
+                if candidate.is_file():
+                    inkscape = str(candidate)
+                    break
+        if inkscape:
+            result = subprocess.run(
+                [inkscape, str(svg_file), "--export-type=pdf", f"--export-filename={output_pdf}"],
+                capture_output=True, timeout=60,
+            )
+            if result.returncode == 0 and validate_pdf_file(output_pdf):
+                return True
+
+        root = ElementTree.parse(svg_file).getroot()
+        if root.tag.rsplit("}", 1)[-1] != "svg":
+            raise ValueError(f"Not an SVG image: {svg_file.name}")
+        view_box = root.get("viewBox", "")
+        if view_box:
+            values = [float(value) for value in re.split(r"[\s,]+", view_box.strip())]
+            if len(values) != 4:
+                raise ValueError(f"Invalid SVG viewBox: {svg_file.name}")
+            width, height = values[2:]
+        else:
+            width = float(root.get("width", "").removesuffix("px"))
+            height = float(root.get("height", "").removesuffix("px"))
+        if not all(math.isfinite(value) and value > 0 for value in (width, height)):
+            raise ValueError(f"Invalid SVG dimensions: {svg_file.name}")
+
+        with tempfile.TemporaryDirectory(prefix="svg-convert-", dir=svg_file.parent) as temporary:
+            html_file = Path(temporary) / "image.html"
+            html_file.write_text(
+                '<!DOCTYPE html><html><head><meta charset="utf-8"><style>'
+                f'@page {{ size: {width:g}px {height:g}px; margin: 0; }}'
+                f'html, body {{ margin: 0; width: {width:g}px; height: {height:g}px; }}'
+                'img { display: block; width: 100%; height: 100%; }'
+                '</style></head><body>'
+                f'<img src="{escape(svg_file.resolve().as_uri(), quote=True)}">'
+                '</body></html>',
+                encoding="utf-8",
+            )
+            return self._try_chrome_pdf(html_file, output_pdf) and validate_pdf_file(output_pdf)
+
+    def _prepare_latex_svg_images(self, latex_dir: Path) -> bool:
+        latex_dir = latex_dir.resolve()
+        converted = {}
+        pattern = re.compile(
+            r"(?P<command>\\(?:sphinxincludegraphics|includegraphics)(?:\[[^\]]*\])?\s*)"
+            r"\{(?P<path>\{[^{}]+\}\.svg|[^{}]+\.svg)\}",
+            re.IGNORECASE,
+        )
+
+        def rewrite(match):
+            reference = match.group("path")
+            grouped = reference.startswith("{")
+            filename = reference.replace("{", "").replace("}", "")
+            source_file = (latex_dir / filename).resolve()
+            source_file.relative_to(latex_dir)
+            if not source_file.is_file():
+                raise FileNotFoundError(f"Referenced SVG does not exist: {filename}")
+            if source_file not in converted:
+                output_pdf = source_file.with_name(source_file.name + ".pdf")
+                if not self._convert_latex_svg(source_file, output_pdf):
+                    raise RuntimeError(
+                        f"SVG conversion failed: {filename}. Install Inkscape or Chrome/Edge "
+                        "(or set CHROME_PATH) for PDF image conversion."
+                    )
+                converted[source_file] = output_pdf.relative_to(latex_dir).as_posix()
+                print(f"[INFO] SVG -> PDF: {filename} -> {converted[source_file]}")
+            target = converted[source_file]
+            if grouped:
+                target = "{" + target[:-4] + "}.pdf"
+            return match.group("command") + "{" + target + "}"
+
+        try:
+            for tex_file in sorted(latex_dir.glob("*.tex")):
+                original = tex_file.read_text(encoding="utf-8")
+                rewritten = pattern.sub(rewrite, original)
+                if rewritten != original:
+                    tex_file.write_text(rewritten, encoding="utf-8")
+            return True
+        except Exception as exc:
+            print(f"[ERROR] SVG preprocessing failed: {exc}")
+            return False
+
     def _try_latex_pdf(self, output_pdf: Path, language: str) -> bool:
         """Build PDF via Sphinx LaTeX -> xelatex (sole generation path)."""
         xelatex = self._find_xelatex()
@@ -1819,6 +1915,7 @@ class PDFGeneratorV2:
 
         pdf_master_path: Optional[Path] = None
         latex_dir: Optional[Path] = None
+        completed = False
         try:
             docs_source = self.config_path.parent
             latex_dir = self.html_dir.parent / "latex"
@@ -1893,6 +1990,9 @@ class PDFGeneratorV2:
                     print("[INFO] .tex 中 .webp 引用已改写为 .jpg")
 
             # ---- 预处理：把 tabulary 替换为 tabularx（规避 xeCJK 的列宽测量递归）----
+            if not self._prepare_latex_svg_images(latex_dir):
+                return False
+
             # Sphinx 默认用 tabulary 排中等宽度表格；在 xeCJK + CJK 字体下，
             # tabulary 的列宽测量会触发 TeX input stack overflow。
             # tabularx 保留版心宽度约束并允许单元格换行，避免 plain tabular 横向溢出。
@@ -1985,6 +2085,7 @@ class PDFGeneratorV2:
                     pass
             shutil.copy2(final_pdf, output_pdf)
             size_mb = final_pdf.stat().st_size / (1024 * 1024)
+            completed = True
             print(f"[OK] LaTeX PDF 已生成: {output_pdf} ({size_mb:.2f} MB)")
             return True
         except subprocess.TimeoutExpired as e:
@@ -2002,9 +2103,12 @@ class PDFGeneratorV2:
             if (
                 latex_dir is not None
                 and latex_dir.exists()
+                and completed
                 and not getattr(self, "keep_temp", False)
             ):
                 shutil.rmtree(latex_dir, ignore_errors=True)
+            elif latex_dir is not None and latex_dir.exists() and not completed:
+                print(f"[INFO] Failed LaTeX build retained for inspection: {latex_dir}")
 
     def _try_chrome_pdf(self, html_file: Path, output_pdf: Path) -> bool:
         """尝试使用Chrome生成PDF"""

@@ -27,6 +27,58 @@ IGNORED_SOURCE_DIRECTORIES = {
 PRESERVED_STATIC_FILENAMES = {"project_info.json", "project_info.js"}
 
 
+def _restore_html_document_links(output_dir: Path) -> None:
+    """Make relative HTML links open as documents instead of downloads."""
+    link_pattern = re.compile(
+        r'<a(?P<attrs>[^>]*\bclass="[^"]*\bdownload\b[^"]*"[^>]*)>'
+        r'(?P<body>.*?)</a>', re.IGNORECASE | re.DOTALL
+    )
+
+    def replace_link(match: re.Match[str]) -> str:
+        attrs = match.group("attrs")
+        if not re.search(r'\bhref="[^"]+\.html(?:[?#][^"]*)?"', attrs, re.IGNORECASE):
+            return match.group(0)
+        attrs = re.sub(r'\sdownload(?:="[^"]*")?', '', attrs, flags=re.IGNORECASE)
+        attrs = re.sub(
+            r'\sclass="([^"]*)"',
+            lambda item: ' class="' + ' '.join(
+                token for token in item.group(1).split()
+                if token.lower() != "download"
+            ) + '"',
+            attrs, count=1, flags=re.IGNORECASE
+        )
+        attrs += ' target="_blank" rel="noopener"'
+        return f'<a{attrs}>{match.group("body")}</a>'
+
+    for html_file in Path(output_dir).rglob("*.html"):
+        content = html_file.read_text(encoding="utf-8")
+        rewritten = link_pattern.sub(replace_link, content)
+        if rewritten != content:
+            html_file.write_text(rewritten, encoding="utf-8")
+
+
+def _copy_document_assets(source_dir: Path, output_dir: Path) -> None:
+    asset_suffixes = {".html", ".htm", ".css", ".js"}
+    for source_file in source_dir.rglob("*"):
+        relative_path = source_file.relative_to(source_dir)
+        if any(
+            part.startswith(("_", ".")) or part in {"utils", "tests"}
+            for part in relative_path.parts[:-1]
+        ):
+            continue
+        if not source_file.is_file() or source_file.suffix.lower() not in asset_suffixes:
+            continue
+        source_file.resolve().relative_to(source_dir)
+        target = output_dir / relative_path
+        target.resolve().relative_to(output_dir)
+        if target.exists():
+            if target.read_bytes() == source_file.read_bytes():
+                continue
+            raise ValueError(f"Asset conflicts with generated output: {relative_path.as_posix()}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_file, target)
+
+
 def _copy_preserved_static_outputs(source_root: Path, destination_root: Path) -> None:
     """Copy final PDF metadata that must survive an HTML-only rebuild."""
     source_static = Path(source_root) / "_static"
@@ -235,6 +287,8 @@ def build_html_site(
             shutil.copytree(
                 temporary_dirs[language], output_dir, dirs_exist_ok=True
             )
+        _copy_document_assets(source_dir, output_dir)
+        _restore_html_document_links(output_dir)
     finally:
         _copy_preserved_static_outputs(preserved_output_dir, output_dir)
         shutil.rmtree(preserved_output_dir, ignore_errors=True)

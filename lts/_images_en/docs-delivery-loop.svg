@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720" role="img" aria-labelledby="title description">
+  <title id="title">SDK documentation delivery pipeline</title>
+  <desc id="description">A technology-styled SDK documentation delivery flow: project documents pass DocumentCatalog scope and quality checks, build bilingual HTML sites and PDF release guides, then publish through GitHub CI and GitHub Pages.</desc>
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#1f3832" stroke-width="1"/>
+    </pattern>
+    <filter id="cyan-glow" x="-30%" y="-50%" width="160%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#28d7c2" flood-opacity=".48"/>
+    </filter>
+    <style>
+      .ui { font-family: Arial, "Segoe UI", "Noto Sans", sans-serif; }
+      .eyebrow { fill: #65e6d3; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; }
+      .title { fill: #f2fcf8; font-size: 37px; font-weight: 700; }
+      .subtitle { fill: #9db4ac; font-size: 17px; }
+      .card { fill: #12231f; stroke: #2a5045; stroke-width: 1.5; }
+      .card-title { fill: #effbf7; font-size: 22px; font-weight: 700; }
+      .card-copy { fill: #b9ccc6; font-size: 17px; }
+      .small { fill: #a9c0b8; font-size: 16px; }
+      .code { fill: #75ebdb; font-family: "Consolas", "Cascadia Mono", monospace; font-size: 14px; }
+      .connector { fill: none; stroke: #3d6a5d; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .number { fill: #081310; font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+      @media (prefers-reduced-motion: reduce) { .motion { display: none; } }
+    </style>
+  </defs>
+
+  <rect width="1440" height="720" fill="#0a1210"/>
+  <rect x="24" y="24" width="1392" height="672" rx="8" fill="#0d1815" stroke="#244139"/>
+  <rect x="24" y="24" width="1392" height="672" rx="8" fill="url(#grid)" opacity=".72"/>
+
+  <g class="ui">
+    <path d="M72 82H128M72 82V106M1312 82H1368M1368 82V106" fill="none" stroke="#36cbb8" stroke-width="2"/>
+    <rect x="72" y="128" width="224" height="30" rx="6" fill="#10322b" stroke="#237c6d"/>
+    <text x="88" y="149" class="eyebrow">DOCUMENTATION BUILD SYSTEM</text>
+    <text x="72" y="212" class="title">SDK Documentation Delivery Pipeline</text>
+    <text x="72" y="244" class="subtitle">Project documentation flows through validation to bilingual HTML, PDF, and GitHub Pages.</text>
+    <text x="72" y="278" class="code">DOCUMENT / VALIDATE / BUILD / DEPLOY</text>
+
+    <path class="connector" d="M344 431H406"/>
+    <path class="connector" d="M686 431H738C760 431 772 419 772 397V355H818"/>
+    <path class="connector" d="M686 431H738C760 431 772 443 772 465V507H818"/>
+    <path class="connector" d="M1098 355H1140C1163 355 1174 367 1174 389V431H1210"/>
+    <path class="connector" d="M1098 507H1140C1163 507 1174 495 1174 473V431H1210"/>
+
+    <g>
+      <rect class="card" x="72" y="339" width="272" height="184" rx="8"/>
+      <rect x="72" y="339" width="272" height="7" rx="7" fill="#29d4c0"/>
+      <circle cx="108" cy="385" r="18" fill="#29d4c0"/>
+      <text x="108" y="385" class="number">1</text>
+      <text x="142" y="392" class="card-title">Project docs</text>
+      <text x="108" y="430" class="code">projects/</text>
+      <text x="108" y="463" class="card-copy">Markdown · MyST · RST</text>
+      <text x="108" y="493" class="small">pages · config · media</text>
+    </g>
+
+    <g>
+      <rect class="card" x="406" y="319" width="280" height="224" rx="8"/>
+      <rect x="406" y="319" width="280" height="7" rx="7" fill="#4f8cff"/>
+      <circle cx="442" cy="365" r="18" fill="#4f8cff"/>
+      <text x="442" y="365" class="number">2</text>
+      <text x="476" y="372" class="card-title">Catalog validation</text>
+      <text x="442" y="413" class="code">DocumentCatalog</text>
+      <line x1="442" y1="436" x2="650" y2="436" stroke="#2b5147" stroke-width="1"/>
+      <text x="442" y="470" class="card-copy">Build scope locked</text>
+      <text x="442" y="503" class="small">scope · locale · media</text>
+    </g>
+
+    <g>
+      <rect class="card" x="818" y="294" width="280" height="122" rx="8"/>
+      <rect x="818" y="294" width="280" height="7" rx="7" fill="#4f8cff"/>
+      <circle cx="854" cy="338" r="18" fill="#4f8cff"/>
+      <text x="854" y="338" class="number">3A</text>
+      <text x="888" y="345" class="card-title">Bilingual HTML</text>
+      <text x="854" y="381" class="card-copy">Sphinx HTML</text>
+      <text x="854" y="406" class="small">search · routes · versions · edits</text>
+    </g>
+
+    <g>
+      <rect class="card" x="818" y="446" width="280" height="122" rx="8"/>
+      <rect x="818" y="446" width="280" height="7" rx="7" fill="#ff9657"/>
+      <circle cx="854" cy="490" r="18" fill="#ff9657"/>
+      <text x="854" y="490" class="number">3B</text>
+      <text x="888" y="497" class="card-title">PDF release guide</text>
+      <text x="854" y="533" class="card-copy">XeLaTeX toolchain</text>
+      <text x="854" y="558" class="small">fonts · bookmarks · code · tables</text>
+    </g>
+
+    <g>
+      <rect class="card" x="1210" y="339" width="158" height="184" rx="8"/>
+      <rect x="1210" y="339" width="158" height="7" rx="7" fill="#a67cff"/>
+      <circle cx="1246" cy="385" r="18" fill="#a67cff"/>
+      <text x="1246" y="385" class="number">4</text>
+      <text x="1234" y="429" class="card-title" font-size="19">GitHub CI</text>
+      <text x="1234" y="464" class="card-copy">Build checks</text>
+      <text x="1234" y="489" class="card-copy">Artifact</text>
+      <text x="1234" y="514" class="card-copy">Pages</text>
+    </g>
+
+    <rect x="72" y="604" width="1296" height="46" rx="6" fill="#0c211c" stroke="#245146"/>
+    <circle cx="100" cy="627" r="7" fill="#29d4c0" filter="url(#cyan-glow)"/>
+    <text x="122" y="632" fill="#d8f6ed" font-size="15" font-weight="700">LOCAL BUILD CHECK</text>
+    <path d="M292 627H365" stroke="#3d6a5d" stroke-width="2"/>
+    <text x="386" y="632" fill="#d8f6ed" font-size="15" font-weight="700">PULL REQUEST BUILD</text>
+    <path d="M642 627H715" stroke="#3d6a5d" stroke-width="2"/>
+    <text x="736" y="632" fill="#d8f6ed" font-size="15" font-weight="700">DEFAULT BRANCH DEPLOYMENT</text>
+    <text x="1150" y="632" class="code">STATUS: RELEASE READY</text>
+  </g>
+
+  <g class="motion" aria-hidden="true">
+    <circle r="7" fill="#29d4c0" filter="url(#cyan-glow)">
+      <animateMotion dur="5.8s" repeatCount="indefinite" path="M344 431H406H686H738C760 431 772 419 772 397V355H818H1098H1140C1163 355 1174 367 1174 389V431H1210"/>
+    </circle>
+    <circle r="6" fill="#ff9657">
+      <animateMotion begin="1.9s" dur="5.8s" repeatCount="indefinite" path="M344 431H406H686H738C760 431 772 443 772 465V507H818H1098H1140C1163 507 1174 495 1174 473V431H1210"/>
+    </circle>
+  </g>
+</svg>

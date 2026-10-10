@@ -62,7 +62,9 @@ def _copy_document_assets(source_dir: Path, output_dir: Path) -> None:
     for source_file in source_dir.rglob("*"):
         relative_path = source_file.relative_to(source_dir)
         if any(
-            part.startswith(("_", ".")) or part in {"utils", "tests"}
+            part.startswith(("_", "."))
+            or part in IGNORED_SOURCE_DIRECTORIES
+            or part in {"utils", "tests"}
             for part in relative_path.parts[:-1]
         ):
             continue

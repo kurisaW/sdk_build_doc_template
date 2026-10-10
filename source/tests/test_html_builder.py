@@ -53,6 +53,26 @@ class HtmlBuilderTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "conflicts"):
                 _copy_document_assets(source, output)
 
+    def test_embedded_build_output_is_not_copied_back_into_itself(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "source"
+            output = source / "source_build" / "html" / "lts"
+            output.mkdir(parents=True)
+            (source / "guide").mkdir()
+            (source / "guide" / "demo.html").write_text(
+                "<html></html>", encoding="utf-8"
+            )
+            (output / "generated.html").write_text(
+                "<html>generated</html>", encoding="utf-8"
+            )
+
+            _copy_document_assets(source, output)
+
+            self.assertTrue((output / "guide" / "demo.html").is_file())
+            self.assertFalse(
+                (output / "source_build" / "html" / "lts" / "generated.html").is_file()
+            )
+
     def test_language_build_excludes_only_the_opposite_language(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source = Path(temp_dir)

@@ -19,7 +19,7 @@ class HtmlBuilderIntegrationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             source = root / "source"
-            output = root / "html"
+            output = source / "source_build" / "html" / "test-version"
             source.mkdir()
             shutil.copy2(SOURCE_DIR / "conf.py", source / "conf.py")
             shutil.copytree(SOURCE_DIR / "utils", source / "utils")
@@ -109,6 +109,8 @@ guide/README
                 source, output, config, ("zh", "en"), "zh"
             )
             write_site_entry(output, roots["zh"], "Bilingual Test", "zh")
+
+            self.assertFalse((output / "source_build").exists())
 
             chinese_page = (output / "guide" / "README_zh.html").read_text(
                 encoding="utf-8"

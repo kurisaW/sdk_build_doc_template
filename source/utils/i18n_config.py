@@ -157,7 +157,7 @@ class I18nConfigManager:
         """获取目录结构"""
         structure = []
         
-        for category_key in self.config.generation.get('output_structure', []):
+        for category_key in self.config.generation.get('navigation', {}).get('order', []):
             if category_key in self.config.categories:
                 category = self.config.categories[category_key]
                 structure.append({

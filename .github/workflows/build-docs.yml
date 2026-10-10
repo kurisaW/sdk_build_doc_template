@@ -8,11 +8,13 @@ on:
     paths:
       - 'source/**'
       - '.github/versions.json'
+      - '.github/workflows/**'
       - 'projects/**'
   pull_request:
     paths:
       - 'source/**'
       - '.github/versions.json'
+      - '.github/workflows/**'
       - 'projects/**'
   workflow_dispatch:
 
@@ -46,6 +48,12 @@ jobs:
         run: |
           cd source
           python build.py --validate
+
+      - name: Run automated tests
+        run: |
+          cd source
+          python -m unittest discover -s tests -v
+          node tests/test_edit_on_github.cjs
 
   build-docs:
     needs: validate-versions

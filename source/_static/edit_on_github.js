@@ -35,25 +35,17 @@
     
     // 过滤掉索引页面和特殊页面
     if (!relativePath || relativePath === '' || relativePath === 'index.html') return false;
-    if (relativePath.match(/^(search|genindex|modindex)\.html$/)) return false;
-    if (relativePath.match(/\/(index\.html)?$/)) return false; // 目录索引页
+    var pageName = relativePath.split('/').pop();
+    if (pageName.match(/^(search|genindex|modindex)(?:_[a-z]+)?\.html$/i)) return false;
+    if (pageName.match(/^index(?:_[a-z]+)?\.html$/i)) return false;
+    if (relativePath.match(/\/(?:index(?:_[a-z]+)?\.html)?$/i)) return false; // 目录索引页
     
-    // 检查是否在项目目录结构中（包含至少两级路径，如 basic/project_name/README.html）
-    var pathParts = relativePath.split('/');
-    if (pathParts.length < 2) return false;
-    
-    // 检查对应的源文件是否是 Markdown 文件
-    // 通过检查 copyFiles 中是否有对应的 .md 文件来判断
-    var copyFiles = (window.versionInfo && window.versionInfo.copyFiles) ? window.versionInfo.copyFiles : [];
-    var fileName = pathParts[pathParts.length - 1].replace(/\.html$/i, '').toLowerCase();
-    
-    // 检查 copyFiles 中是否有对应的 .md 文件
-    var hasMarkdownFile = copyFiles.some(function(file) {
-      var fileBaseName = String(file || '').replace(/\.md$/i, '').toLowerCase();
-      return fileBaseName === fileName;
-    });
-    
-    return hasMarkdownFile;
+    // Every generated article has a corresponding source document.  The
+    // previous check required a basename-only match in copyFiles, which hid
+    // ordinary articles and could not distinguish files in different
+    // categories.  Directory indexes and Sphinx utility pages were filtered
+    // above, so the remaining HTML pages are editable documents.
+    return /\.html$/i.test(relativePath);
   }
 
   function detectCurrentLanguage() {
@@ -98,11 +90,6 @@
     var projectsDir = (window.versionInfo && window.versionInfo.projectsDir) ? window.versionInfo.projectsDir : '';
     var copyFiles = (window.versionInfo && window.versionInfo.copyFiles) ? window.versionInfo.copyFiles : [];
     var mapped = path;
-    // 剥离 docs 分类前缀（start/basic/driver/component/...）后取剩余相对路径
-    var firstSlash = mapped.indexOf('/');
-    if (firstSlash >= 0) {
-      mapped = mapped.substring(firstSlash + 1);
-    }
     // 去掉 .html 后缀
     var htmlName = mapped.split('/').pop();
     var baseName = htmlName.replace(/\.html$/i, '');
@@ -144,9 +131,11 @@
     }
     // 组装目录 + 源文件名
     var dir = mapped.substring(0, mapped.lastIndexOf('/'));
-    mapped = dir + '/' + candidates[0];
+    mapped = dir ? dir + '/' + candidates[0] : candidates[0];
     // 拼接为仓库中的项目路径
-    if (projectsDir) {
+    // Root README fallbacks live at the repository root.  Pages under a
+    // category/project directory belong below repository.projects_dir.
+    if (projectsDir && mapped.indexOf('/') >= 0) {
       mapped = projectsDir.replace(/\/+$/,'') + '/' + mapped.replace(/^\//,'');
     }
     

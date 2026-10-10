@@ -156,11 +156,12 @@ class IndexGenerator:
 
     def _ordered_root_directories(self, directories: Iterable[Path]) -> List[Path]:
         by_name = {directory.as_posix(): directory for directory in directories}
-        configured_order = self.generation_config.get("output_structure", []) or []
+        navigation = self.generation_config.get("navigation", {}) or {}
+        configured_order = navigation.get("order", []) or []
         ordered = []
         for configured_name in configured_order:
             configured_path = self._configured_path(
-                str(configured_name), "generation.output_structure"
+                str(configured_name), "generation.navigation.order"
             )
             if configured_path.as_posix() in by_name:
                 ordered.append(by_name.pop(configured_path.as_posix()))
@@ -389,7 +390,7 @@ class IndexGenerator:
                         for child in doc_directories
                         if child.parent == directory and child in landing_pages
                     ),
-                    key=self._natural_key,
+                    key=self.catalog.tree_sort_key if self.catalog else self._natural_key,
                 )
                 entries = sorted(direct_documents, key=self._natural_key) + [
                     landing_pages[child] for child in child_directories

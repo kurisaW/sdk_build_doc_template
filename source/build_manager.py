@@ -12,16 +12,13 @@ import json
 import shutil
 import subprocess
 import argparse
-import re
 from pathlib import Path
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional
 import yaml
-from utils.i18n_config import I18nConfigManager
 from utils.html_builder import build_html_site, write_site_entry
 from utils.language_support import (
     configured_language_paths,
     detect_languages,
-    document_language,
     select_default_language,
 )
 from utils.pdf_builder import build_detected_pdfs
@@ -48,9 +45,6 @@ class BuildManager:
         self.worktrees_dir = self.build_root / 'worktrees'
         self.versions_dir = self.build_root / 'html'
         
-        # 初始化国际化配置管理器
-        config_path = self.docs_source / 'config.yaml'
-        self.i18n_manager = I18nConfigManager(config_path)
         
     def _find_project_root(self) -> Path:
         """查找项目根目录"""
@@ -80,57 +74,6 @@ class BuildManager:
             versions.append(VersionConfig(version_dict))
         return versions
 
-    @staticmethod
-    def _resolve_language_master_doc(docs_source: Path, config: Dict, language: str) -> str:
-        """Return an existing source-relative Sphinx master docname."""
-        generation = config.get('generation', {}) or {}
-        candidates = []
-        configured_sources = (
-            (generation, 'default_page'),
-            (generation.get('discovery', {}) or {}, 'entry_files'),
-            (generation, 'language_detection'),
-        )
-        for source_config, option in configured_sources:
-            configured = configured_language_paths(source_config, option)
-            if configured.get(language):
-                candidates.append(Path(configured[language]))
-        candidates.extend([
-            Path('README_zh.md' if language == 'zh' else 'README.md'),
-            Path('index_zh.rst' if language == 'zh' else 'index.rst'),
-            Path('index_zh.md' if language == 'zh' else 'index.md'),
-        ])
-        source_root = docs_source.resolve()
-        checked = []
-        for candidate in candidates:
-            if candidate.is_absolute() or '..' in candidate.parts:
-                continue
-            resolved = (source_root / candidate).resolve()
-            try:
-                relative = resolved.relative_to(source_root)
-            except ValueError:
-                continue
-            checked.append(relative.as_posix())
-            if resolved.is_file():
-                return relative.with_suffix('').as_posix()
-        raise FileNotFoundError(
-            f"未找到 {language} 主文档；Sphinx source={source_root}，"
-            f"已检查: {', '.join(dict.fromkeys(checked)) or '无有效候选'}。"
-            "请确认 doc_generator 已生成/复制配置的 default_page 文件。"
-        )
-
-    @staticmethod
-    def _language_exclude_patterns(docs_source: Path, language: str) -> str:
-        """Exclude only the opposite language while keeping the master page."""
-        patterns = []
-        source_root = docs_source.resolve()
-        for path in source_root.rglob('*'):
-            if not path.is_file() or path.suffix.lower() not in {'.md', '.rst'}:
-                continue
-            relative = path.relative_to(source_root)
-            if document_language(relative) != language:
-                patterns.append(relative.as_posix())
-        return ','.join(sorted(patterns))
-
     def _sphinx_environment(
         self, environment: Dict[str, str], docs_source: Optional[Path] = None
     ) -> Dict[str, str]:
@@ -155,6 +98,14 @@ class BuildManager:
             ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
             capture_output=True, text=True, check=True
         ).stdout.strip()
+
+        # GitHub Actions checks pull requests out as a detached commit.  There
+        # is no local branch to create a worktree from in that state, and
+        # falling back to the configured branch would build the base branch
+        # instead of the commit that triggered this run.
+        if current_branch == 'HEAD':
+            print("当前检出为 detached HEAD，直接使用 PR 检出目录")
+            return Path.cwd()
         
         # 如果目标分支就是当前分支，直接使用当前目录
         if version_config.branch == current_branch:
@@ -180,10 +131,10 @@ class BuildManager:
         
         return worktree_path
 
-    def _build_directory_tree_html(
+    def _build_html_and_pdf(
         self, docs_source: Path, version_config: VersionConfig, config: Dict
     ) -> bool:
-        """按语言隔离构建目录树文档，再合并为统一静态站点。"""
+        """按语言隔离构建文档，再合并为统一静态站点。"""
         output_dir = self.build_root / 'html' / version_config.url_path
         output_dir.mkdir(parents=True, exist_ok=True)
         project_config = config.get('project', {}) or {}
@@ -275,26 +226,6 @@ class BuildManager:
             os.chdir(worktree_path)
         
         try:
-            # 读取项目名称用于 PDF 命名
-            project_name = 'SDK_Docs'
-            try:
-                cfg_path = docs_source_in_worktree / 'config.yaml'
-                if cfg_path.exists():
-                    with open(cfg_path, 'r', encoding='utf-8') as f:
-                        cfg = yaml.safe_load(f) or {}
-                        project_name = (cfg.get('project', {}) or {}).get('name', project_name)
-            except Exception:
-                pass
-            def _slugify(name: str) -> str:
-                safe = []
-                for ch in name:
-                    if ch.isalnum() or ('\u4e00' <= ch <= '\u9fa5'):
-                        safe.append(ch)
-                    elif ch in [' ', '-', '_']:
-                        safe.append('_' if ch == ' ' else ch)
-                s = ''.join(safe).strip('_')
-                return s or 'SDK_Docs'
-            pdf_basename = _slugify(project_name) + '.pdf'
             # 运行文档生成脚本（如果存在）
             doc_generator = docs_source_in_worktree / 'doc_generator.py'
             if doc_generator.exists():
@@ -312,318 +243,10 @@ class BuildManager:
             cfg_path = docs_source_in_worktree / 'config.yaml'
             with open(cfg_path, 'r', encoding='utf-8') as f:
                 build_config = yaml.safe_load(f) or {}
-            generation_mode = (
-                (build_config.get('generation', {}) or {}).get('mode', 'legacy')
+            return self._build_html_and_pdf(
+                docs_source_in_worktree, version_config, build_config
             )
-            if generation_mode == 'directory_tree':
-                return self._build_directory_tree_html(
-                    docs_source_in_worktree, version_config, build_config
-                )
-            
-            # 构建 HTML 文档 - 使用国际化配置管理器
-            output_dir = self.build_root / 'html' / version_config.url_path
-            print(f"构建 HTML 文档: {output_dir}")
-            
-            # 构建中文版文档
-            print("构建中文版文档...")
-            zh_output_dir = output_dir / 'zh'
-            zh_config = self.i18n_manager.get_language_config('zh')
-            zh_master_doc = self._resolve_language_master_doc(
-                docs_source_in_worktree, build_config, 'zh'
-            )
-            zh_env = self._sphinx_environment(
-                os.environ.copy(), docs_source_in_worktree
-            )
-            zh_env['SPHINX_MASTER_DOC'] = zh_master_doc
-            zh_env['SPHINX_MASTER_DOC_OVERRIDE'] = zh_master_doc
-            zh_env['SPHINX_LANGUAGE'] = 'zh_CN'
-            # 确保中文locale环境变量
-            zh_env['LANG'] = 'zh_CN.UTF-8'
-            zh_env['LC_ALL'] = 'zh_CN.UTF-8'
-            zh_env['LC_CTYPE'] = 'zh_CN.UTF-8'
-            
-            # 中文版构建时临时移动英文版文件，避免Sphinx读取
-            moved_files = []
-            try:
-                # 从配置文件读取分类列表
-                cfg_path = docs_source_in_worktree / 'config.yaml'
-                if cfg_path.exists():
-                    with open(cfg_path, 'r', encoding='utf-8') as f:
-                        cfg = yaml.safe_load(f) or {}
-                        categories = cfg.get('generation', {}).get('output_structure', [])
-                        for category in categories:
-                            # 临时移动英文版分类索引文件
-                            en_index_file = docs_source_in_worktree / category / 'index.rst'
-                            if en_index_file.exists():
-                                temp_file = en_index_file.with_suffix('.rst.temp')
-                                en_index_file.rename(temp_file)
-                                moved_files.append((en_index_file, temp_file))
-                                print(f"  临时移动英文版文件: {en_index_file} -> {temp_file}")
-                
-                # 临时移动英文版主索引文件
-                en_main_index = docs_source_in_worktree / 'index.rst'
-                if en_main_index.exists():
-                    temp_file = en_main_index.with_suffix('.rst.temp')
-                    en_main_index.rename(temp_file)
-                    moved_files.append((en_main_index, temp_file))
-                    print(f"  临时移动英文版文件: {en_main_index} -> {temp_file}")
-                    
-            except Exception as e:
-                print(f"  警告: 移动英文版文件时出错: {e}")
-            
-            # 中文版构建时排除英文文档
-            zh_env['SPHINX_EXCLUDE_PATTERNS'] = self._language_exclude_patterns(
-                docs_source_in_worktree, 'zh'
-            )
-            
-            print(f"中文版构建环境变量:")
-            print(f"  LANG: {zh_env.get('LANG', 'N/A')}")
-            print(f"  LC_ALL: {zh_env.get('LC_ALL', 'N/A')}")
-            print(f"  SPHINX_LANGUAGE: {zh_env.get('SPHINX_LANGUAGE', 'N/A')}")
-            print(f"  SPHINX_MASTER_DOC: {zh_env.get('SPHINX_MASTER_DOC', 'N/A')}")
-            print(f"  SPHINX_EXCLUDE_PATTERNS: {zh_env.get('SPHINX_EXCLUDE_PATTERNS', 'N/A')}")
-            print(f"  索引文件名: {zh_config['index_filename']}")
-            
-            subprocess.run([
-                sys.executable, '-m', 'sphinx.cmd.build',
-                '-b', 'html',
-                '-D', 'language=zh_CN',
-                '-D', 'master_doc=' + zh_master_doc,
-                str(docs_source_in_worktree),
-                str(zh_output_dir)
-            ], check=True, env=zh_env)
-            
-            # 恢复临时移动的英文版文件
-            for original_file, temp_file in moved_files:
-                try:
-                    if temp_file.exists():
-                        temp_file.rename(original_file)
-                        print(f"  恢复英文版文件: {temp_file} -> {original_file}")
-                except Exception as e:
-                    print(f"  警告: 恢复文件时出错 {temp_file}: {e}")
-            
-            # 检查翻译文件是否生成
-            translations_file = zh_output_dir / '_static' / 'translations.js'
-            if translations_file.exists():
-                print(f"[OK] 中文翻译文件已生成: {translations_file}")
-                # 检查翻译文件内容
-                with open(translations_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    if 'zh_Hans_CN' in content or 'zh_CN' in content:
-                        print("[OK] 翻译文件包含中文locale信息")
-                    else:
-                        print("[WARN]  翻译文件可能不包含正确的中文locale信息")
-            else:
-                print("[WARN]  中文翻译文件未生成")
-            
-            # 构建英文版文档
-            print("构建英文版文档...")
-            en_output_dir = output_dir / 'en'
-            en_config = self.i18n_manager.get_language_config('en')
-            en_master_doc = self._resolve_language_master_doc(
-                docs_source_in_worktree, build_config, 'en'
-            )
-            en_env = self._sphinx_environment(
-                os.environ.copy(), docs_source_in_worktree
-            )
-            en_env['SPHINX_MASTER_DOC'] = en_master_doc
-            en_env['SPHINX_MASTER_DOC_OVERRIDE'] = en_master_doc
-            en_env['SPHINX_LANGUAGE'] = 'en'
-            # 确保英文locale环境变量
-            en_env['LANG'] = 'en_US.UTF-8'
-            en_env['LC_ALL'] = 'en_US.UTF-8'
-            en_env['LC_CTYPE'] = 'en_US.UTF-8'
-            
-            # 英文版构建时临时移动中文版文件，避免Sphinx读取
-            moved_files_en = []
-            try:
-                # 从配置文件读取分类列表
-                cfg_path = docs_source_in_worktree / 'config.yaml'
-                if cfg_path.exists():
-                    with open(cfg_path, 'r', encoding='utf-8') as f:
-                        cfg = yaml.safe_load(f) or {}
-                        categories = cfg.get('generation', {}).get('output_structure', [])
-                        for category in categories:
-                            # 临时移动中文版分类索引文件
-                            zh_index_file = docs_source_in_worktree / category / 'index_zh.rst'
-                            if zh_index_file.exists():
-                                temp_file = zh_index_file.with_suffix('.rst.temp')
-                                zh_index_file.rename(temp_file)
-                                moved_files_en.append((zh_index_file, temp_file))
-                                print(f"  临时移动中文版文件: {zh_index_file} -> {temp_file}")
-                
-                # 临时移动中文版主索引文件
-                zh_main_index = docs_source_in_worktree / 'index_zh.rst'
-                if zh_main_index.exists():
-                    temp_file = zh_main_index.with_suffix('.rst.temp')
-                    zh_main_index.rename(temp_file)
-                    moved_files_en.append((zh_main_index, temp_file))
-                    print(f"  临时移动中文版文件: {zh_main_index} -> {temp_file}")
-                    
-            except Exception as e:
-                print(f"  警告: 移动中文版文件时出错: {e}")
-            
-            # 英文版构建时排除中文文档
-            en_env['SPHINX_EXCLUDE_PATTERNS'] = self._language_exclude_patterns(
-                docs_source_in_worktree, 'en'
-            )
-            
-            print(f"英文版构建环境变量:")
-            print(f"  LANG: {en_env.get('LANG', 'N/A')}")
-            print(f"  LC_ALL: {en_env.get('LC_ALL', 'N/A')}")
-            print(f"  SPHINX_LANGUAGE: {en_env.get('SPHINX_LANGUAGE', 'N/A')}")
-            print(f"  SPHINX_EXCLUDE_PATTERNS: {en_env.get('SPHINX_EXCLUDE_PATTERNS', 'N/A')}")
-            
-            subprocess.run([
-                sys.executable, '-m', 'sphinx.cmd.build',
-                '-b', 'html',
-                '-D', 'master_doc=' + en_master_doc,
-                '-D', 'language=en',
-                str(docs_source_in_worktree),
-                str(en_output_dir)
-            ], check=True, env=en_env)
-            
-            # 恢复临时移动的中文版文件
-            for original_file, temp_file in moved_files_en:
-                try:
-                    if temp_file.exists():
-                        temp_file.rename(original_file)
-                        print(f"  恢复中文版文件: {temp_file} -> {original_file}")
-                except Exception as e:
-                    print(f"  警告: 恢复文件时出错 {temp_file}: {e}")
-            
-            # 检查翻译文件是否生成，如果没有则手动创建
-            translations_file = en_output_dir / '_static' / 'translations.js'
-            if translations_file.exists():
-                print(f"[OK] 英文翻译文件已生成: {translations_file}")
-                # 检查翻译文件内容
-                with open(translations_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    if 'en_US' in content or 'en' in content:
-                        print("[OK] 翻译文件包含英文locale信息")
-                    else:
-                        print("[WARN]  翻译文件可能不包含正确的英文locale信息")
-            else:
-                print("[WARN]  英文翻译文件未生成，手动创建...")
-                # 手动创建英文翻译文件
-                en_translations_content = '''const TRANSLATIONS = {
-    "locale": "en_US",
-    "messages": {
-        "Search": "Search",
-        "Searching": "Searching",
-        "Search Results": "Search Results",
-        "Search finished, found %s page(s) matching the search query.": "Search finished, found %s page(s) matching the search query.",
-        "Search didn't return any results. Please try again with different keywords.": "Search didn't return any results. Please try again with different keywords.",
-        "Search Results for": "Search Results for",
-        "Searching for": "Searching for",
-        "Search": "Search",
-        "Searching": "Searching",
-        "Search Results": "Search Results"
-    }
-};
-'''
-                # 确保目录存在
-                translations_file.parent.mkdir(parents=True, exist_ok=True)
-                with open(translations_file, 'w', encoding='utf-8') as f:
-                    f.write(en_translations_content)
-                print(f"[OK] 已手动创建英文翻译文件: {translations_file}")
-            
-            # 合并文档集到统一目录
-            print("合并文档集...")
-            self._merge_docs_with_i18n(zh_output_dir, en_output_dir, output_dir)
-            self._ensure_version_index(output_dir, build_config)
-            
-            # 生成版本配置（注入项目源目录片段与复制文件规则）
-            # 从 source/config.yaml 读取 repository.projects_dir，并转换为仓库内相对路径片段
-            projects_dir_web = ''
-            copy_files_list = []
-            try:
-                cfg_path = docs_source_in_worktree / 'config.yaml'
-                if cfg_path.exists():
-                    with open(cfg_path, 'r', encoding='utf-8') as f:
-                        repo_cfg = yaml.safe_load(f) or {}
-                        pdir = ((repo_cfg.get('repository', {}) or {}).get('projects_dir', '') or '').replace('\\','/')
-                        # 若是相对路径如 ../projects，则仅取末段 "projects"
-                        if pdir:
-                            parts = [seg for seg in pdir.split('/') if seg and seg != '..' and seg != '.']
-                            if parts:
-                                projects_dir_web = '/'.join(parts[-1:])
-                        copy_files_list = ((repo_cfg.get('generation', {}) or {}).get('copy_files', []) or [])
-            except Exception:
-                pass
 
-            self._generate_version_config(output_dir, version_config, projects_dir_web, copy_files_list)
-
-            # 构建 PDF（仅使用增强版V2生成器，生成中英文两个版本）
-            pdf_file = None
-            from pdf_generator_enhanced_v2 import PDFGeneratorV2
-            print("使用增强版V2 PDF生成器...")
-            pdf_generator = PDFGeneratorV2(output_dir, output_dir / '_static')
-            # 中文
-            if pdf_generator.generate_pdf(project_name, language="zh"):
-                static_dir = output_dir / '_static'
-                candidate_pdf = static_dir / f'{project_name}.pdf'
-                if candidate_pdf.exists():
-                    pdf_file = candidate_pdf
-                    print(f"[OK] 中文PDF生成成功: {pdf_file}")
-                else:
-                    print("[WARN]  中文PDF文件未找到")
-            else:
-                print("[WARN]  中文PDF生成失败")
-            # 英文
-            print("正在生成英文版本PDF...")
-            if pdf_generator.generate_pdf(project_name, language="en"):
-                static_dir = output_dir / '_static'
-                # 英文 PDF 名称使用下划线替换空格
-                en_pdf = static_dir / f"{project_name.replace(' ', '_')}_EN.pdf"
-                if en_pdf.exists():
-                    print(f"[OK] 英文PDF生成成功: {en_pdf}")
-                else:
-                    print("[WARN]  英文PDF文件未找到")
-            else:
-                print("[WARN]  英文PDF生成失败")
-
-            # 将 PDF 复制到 HTML 的 _static 目录，供在线下载
-            static_dir = output_dir / '_static'
-            static_dir.mkdir(exist_ok=True)
-            
-            if pdf_file and pdf_file.exists():
-                target_pdf = static_dir / pdf_basename
-                try:
-                    # 避免源与目标为同一文件时复制报错
-                    if pdf_file.resolve() != target_pdf.resolve():
-                        shutil.copy2(pdf_file, target_pdf)
-                        print(f"[OK] 生成并复制 PDF: {pdf_file.name} -> {target_pdf}")
-                    else:
-                        print(f"[OK] PDF 已在目标位置: {target_pdf}")
-                except Exception as copy_err:
-                    print(f"[WARN]  复制 PDF 时出现问题（已忽略）：{copy_err}")
-                # 兼容默认名称，额外复制一份 sdk-docs.pdf，便于前端 file:// 环境无需获取项目信息
-                fallback_pdf = static_dir / 'sdk-docs.pdf'
-                try:
-                    shutil.copy2(pdf_file, fallback_pdf)
-                except Exception:
-                    pass
-            else:
-                print("[ERROR] 未生成有效 PDF")
-                return False
-            
-            # 写入项目信息，供前端读取文件名
-            project_info = {
-                'projectName': project_name,
-                'pdfFileName': pdf_basename
-            }
-            with open(static_dir / 'project_info.json', 'w', encoding='utf-8') as f:
-                json.dump(project_info, f, ensure_ascii=False)
-            # 兼容 file:// 环境：同时输出 JS 版本，供页面直接读取
-            try:
-                with open(static_dir / 'project_info.js', 'w', encoding='utf-8') as f_js:
-                    f_js.write('window.projectInfo = ' + json.dumps(project_info, ensure_ascii=False) + ';\n')
-            except Exception:
-                pass
-            
-            return True
-            
         except subprocess.CalledProcessError as e:
             print(f"[ERROR] 构建失败: {e}")
             return False
@@ -728,129 +351,6 @@ class BuildManager:
         )
         print(f'[OK] 创建版本入口页面: {index_file} -> {target}')
     
-    
-    def _merge_docs_with_i18n(self, zh_dir: Path, en_dir: Path, output_dir: Path):
-        """使用国际化配置合并中英文文档集"""
-        import shutil
-        
-        # 创建输出目录
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # 第一步：复制英文版文档（保持原名，无后缀表示英文）
-        print("复制英文版文档...")
-        self._copy_docs_with_html_fix(en_dir, output_dir, 'en')
-        
-        # 第二步：复制中文版文档（添加_zh后缀）
-        print("复制中文版文档...")
-        self._copy_docs_with_html_fix(zh_dir, output_dir, 'zh')
-        
-        # 清理临时目录
-        shutil.rmtree(zh_dir, ignore_errors=True)
-        shutil.rmtree(en_dir, ignore_errors=True)
-        
-        print("[OK] 文档集合并完成")
-        print(f"  - 中文版文件：添加 _zh 后缀（如 index_zh.html, README_zh.html）")
-        print(f"  - 英文版文件：保持原名（如 index.html, README.html）")
-    
-    def _copy_docs_with_html_fix(self, source_dir: Path, target_dir: Path, language: str):
-        """复制文档并修复HTML文件的语言配置"""
-        import shutil
-        
-        # 确保目标目录存在
-        target_dir.mkdir(parents=True, exist_ok=True)
-        
-        for item in source_dir.iterdir():
-            if item.is_file():
-                if item.name.endswith('.html'):
-                    # HTML文件需要修复语言配置
-                    if language == 'zh':
-                        # 中文版文件添加_zh后缀
-                        if item.stem.endswith('_zh'):
-                            new_name = item.name
-                        else:
-                            new_name = item.stem + '_zh.html'
-                        target_file = target_dir / new_name
-                        self._fix_html_language(item, target_file, 'zh')
-                    else:
-                        # 英文版文件保持原名
-                        target_file = target_dir / item.name
-                        self._fix_html_language(item, target_file, 'en')
-                else:
-                    # 非HTML文件直接复制
-                    shutil.copy2(item, target_dir / item.name)
-            elif item.is_dir() and not item.name.startswith('.'):
-                # 只处理非隐藏目录，跳过 .doctrees 等Sphinx内部目录
-                target_subdir = target_dir / item.name
-                target_subdir.mkdir(exist_ok=True)
-                for subitem in item.iterdir():
-                    if subitem.is_file():
-                        if subitem.name.endswith('.html'):
-                            # HTML文件需要修复语言配置
-                            if language == 'zh':
-                                # 中文版文件添加_zh后缀
-                                if subitem.stem.endswith('_zh'):
-                                    new_name = subitem.name
-                                else:
-                                    new_name = subitem.stem + '_zh.html'
-                                target_file = target_subdir / new_name
-                                self._fix_html_language(subitem, target_file, 'zh')
-                            else:
-                                # 英文版文件保持原名
-                                target_file = target_subdir / subitem.name
-                                self._fix_html_language(subitem, target_file, 'en')
-                        else:
-                            # 非HTML文件直接复制
-                            shutil.copy2(subitem, target_subdir / subitem.name)
-                    elif subitem.is_dir() and not subitem.name.startswith('.'):
-                        # 递归处理子目录，跳过隐藏目录
-                        self._copy_docs_with_html_fix(subitem, target_subdir / subitem.name, language)
-    
-    def _fix_html_language(self, source_file: Path, target_file: Path, language: str):
-        """修复HTML文件的语言配置"""
-        try:
-            with open(source_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # 修复语言属性
-            if language == 'en':
-                # 英文版修复
-                content = re.sub(r'lang="zh-CN"', 'lang="en"', content)
-                content = re.sub(r'placeholder="搜索文档"', 'placeholder="Search documentation"', content)
-                content = re.sub(r'aria-label="搜索文档"', 'aria-label="Search documentation"', content)
-                content = re.sub(r'aria-label="导航菜单"', 'aria-label="Navigation menu"', content)
-                content = re.sub(r'aria-label="移动版导航菜单"', 'aria-label="Mobile navigation menu"', content)
-                content = re.sub(r'aria-label="页面导航"', 'aria-label="Page navigation"', content)
-                content = re.sub(r'aria-label="页脚"', 'aria-label="Footer"', content)
-                
-                # 修复链接指向
-                content = re.sub(r'href="([^"]*)_zh\.html"', r'href="\1.html"', content)
-                content = re.sub(r'href="([^"]*)/index_zh\.html"', r'href="\1/index.html"', content)
-                
-                # 修复目录结构中的链接
-                content = re.sub(r'href="([^"]*)_zh\.html#', r'href="\1.html#', content)
-                
-            else:
-                # 中文版保持原样，但确保语言属性正确
-                content = re.sub(r'lang="en"', 'lang="zh-CN"', content)
-                # 确保中文版链接指向中文版文件
-                content = re.sub(r'href="([^"]*)(?<!_zh)\.html"', r'href="\1_zh.html"', content)
-                content = re.sub(r'href="([^"]*)/index\.html"', r'href="\1/index_zh.html"', content)
-                # 修复搜索框文本
-                content = re.sub(r'placeholder="Search documentation"', 'placeholder="搜索文档"', content)
-                content = re.sub(r'aria-label="Search documentation"', 'aria-label="搜索文档"', content)
-                content = re.sub(r'aria-label="Navigation menu"', 'aria-label="导航菜单"', content)
-                content = re.sub(r'aria-label="Mobile navigation menu"', 'aria-label="移动版导航菜单"', content)
-                content = re.sub(r'aria-label="Page navigation"', 'aria-label="页面导航"', content)
-                content = re.sub(r'aria-label="Footer"', 'aria-label="页脚"', content)
-            
-            # 写入修复后的文件
-            with open(target_file, 'w', encoding='utf-8') as f:
-                f.write(content)
-                
-        except Exception as e:
-            print(f"[WARN]  修复HTML文件语言配置失败: {e}")
-            # 如果修复失败，直接复制原文件
-            shutil.copy2(source_file, target_file)
     
     def copy_build_result(self, worktree_path: Path, version_config: VersionConfig):
         """就地构建后无需复制，保持接口以兼容调用方"""

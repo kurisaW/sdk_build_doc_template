@@ -10,6 +10,7 @@ if str(SOURCE_DIR) not in sys.path:
     sys.path.insert(0, str(SOURCE_DIR))
 
 from utils.html_builder import (
+    _copy_document_assets,
     _prepare_english_reserved_index,
     build_html_site,
     language_exclude_patterns,
@@ -18,6 +19,40 @@ from utils.html_builder import (
 
 
 class HtmlBuilderTests(unittest.TestCase):
+    def test_admonitions_and_markdown_blockquotes_keep_separate_styles(self):
+        css = (SOURCE_DIR / "_static" / "custom.css").read_text(encoding="utf-8")
+        blockquote_start = css.index(".sdk-reading-main .rst-content blockquote {")
+        blockquote_css = css[blockquote_start:css.index('.sdk-reading-layout--no-outline')]
+        self.assertIn('content: "Tips:"', blockquote_css)
+        self.assertNotIn(".admonition", blockquote_css)
+        self.assertNotIn(".rst-content .admonition", css)
+        self.assertNotIn(".rst-content .admonition-title", css)
+
+    def test_embedded_html_assets_keep_relative_paths_and_bytes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "source"
+            output = Path(temp_dir) / "html"
+            guide = source / "guide"
+            guide.mkdir(parents=True)
+            output.mkdir()
+            content = b'<script src="./demo.js"></script><a href="../index.html">Home</a>'
+            (guide / "demo.html").write_bytes(content)
+            (guide / "demo.js").write_bytes(b"window.demo = true;")
+            (guide / "demo.css").write_bytes(b"body { color: red; }")
+            templates = source / "_templates"
+            templates.mkdir()
+            (templates / "layout.html").write_bytes(b"template")
+
+            _copy_document_assets(source, output)
+
+            self.assertEqual((output / "guide/demo.html").read_bytes(), content)
+            self.assertTrue((output / "guide/demo.js").is_file())
+            self.assertTrue((output / "guide/demo.css").is_file())
+            self.assertFalse((output / "_templates").exists())
+            (output / "guide/demo.html").write_bytes(b"generated page")
+            with self.assertRaisesRegex(ValueError, "conflicts"):
+                _copy_document_assets(source, output)
+
     def test_language_build_excludes_only_the_opposite_language(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             source = Path(temp_dir)

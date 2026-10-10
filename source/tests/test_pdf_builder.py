@@ -2,6 +2,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 SOURCE_DIR = Path(__file__).resolve().parents[1]
@@ -14,6 +15,56 @@ from utils.pdf_formatting import strip_manual_heading_number
 
 
 class PdfBuilderTests(unittest.TestCase):
+    def test_pdf_quote_style_is_defined_in_latex_not_only_html(self):
+        conf = (SOURCE_DIR / "conf.py").read_text(encoding="utf-8")
+        self.assertIn(r"\renewenvironment{quote}", conf)
+        self.assertIn(r"\usepackage[breakable]{tcolorbox}", conf)
+        self.assertIn(r"\textbf{Tips:}", conf)
+        self.assertIn("top=1.125em,bottom=1.125em", conf)
+
+    def test_latex_svg_references_are_converted_and_rewritten_once(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            svg = root / "architecture.svg"
+            svg.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1200"/>', encoding="utf-8")
+            tex = root / "sdk-docs.tex"
+            tex.write_text(
+                r"\sphinxincludegraphics{{architecture}.svg}" + "\n"
+                + r"\includegraphics[width=\linewidth]{architecture.svg}" + "\n"
+                + r"\sphinxincludegraphics{{normal}.png}",
+                encoding="utf-8",
+            )
+            generator = object.__new__(PDFGeneratorV2)
+            with patch.object(generator, "_convert_latex_svg", return_value=True) as convert:
+                self.assertTrue(generator._prepare_latex_svg_images(root))
+                convert.assert_called_once_with(svg.resolve(), root / "architecture.svg.pdf")
+            result = tex.read_text(encoding="utf-8")
+            self.assertIn(r"\sphinxincludegraphics{{architecture.svg}.pdf}", result)
+            self.assertIn(r"\includegraphics[width=\linewidth]{architecture.svg.pdf}", result)
+            self.assertIn(r"\sphinxincludegraphics{{normal}.png}", result)
+
+    def test_latex_svg_conversion_failure_keeps_original_reference(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "architecture.svg").write_text("<svg/>", encoding="utf-8")
+            tex = root / "sdk-docs.tex"
+            original = r"\sphinxincludegraphics{{architecture}.svg}"
+            tex.write_text(original, encoding="utf-8")
+            generator = object.__new__(PDFGeneratorV2)
+            with patch.object(generator, "_convert_latex_svg", return_value=False):
+                self.assertFalse(generator._prepare_latex_svg_images(root))
+            self.assertEqual(tex.read_text(encoding="utf-8"), original)
+
+    def test_latex_svg_references_cannot_escape_build_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            tex = root / "sdk-docs.tex"
+            tex.write_text(r"\includegraphics{../outside.svg}", encoding="utf-8")
+            generator = object.__new__(PDFGeneratorV2)
+            with patch.object(generator, "_convert_latex_svg") as convert:
+                self.assertFalse(generator._prepare_latex_svg_images(root))
+                convert.assert_not_called()
+
     def test_pdf_code_blocks_are_smaller_than_body_text(self):
         conf = (SOURCE_DIR / "conf.py").read_text(encoding="utf-8")
 
@@ -115,8 +166,9 @@ generation:
     name: "指南"
     name_en: "Guide"
 generation:
-  output_structure:
-    - "guide"
+  navigation:
+    order:
+      - "guide"
 """,
                 encoding="utf-8",
             )
@@ -195,8 +247,9 @@ generation:
   directory_index:
     zh: "OVERVIEW_zh.md"
     en: "OVERVIEW.md"
-  output_structure:
-    - "guide"
+  navigation:
+    order:
+      - "guide"
 """,
                 encoding="utf-8",
             )
@@ -237,8 +290,9 @@ generation:
   basic:
     name: "基础篇"
 generation:
-  output_structure:
-    - "basic"
+  navigation:
+    order:
+      - "basic"
 """,
                 encoding="utf-8",
             )
@@ -266,7 +320,8 @@ generation:
   guide:
     name: "开发指南"
 generation:
-  output_structure: []
+  navigation:
+    order: []
 """,
                 encoding="utf-8",
             )
@@ -297,8 +352,9 @@ generation:
   guide:
     name: "开发指南"
 generation:
-  output_structure:
-    - "guide"
+  navigation:
+    order:
+      - "guide"
 """,
                 encoding="utf-8",
             )

@@ -31,7 +31,9 @@ def detect_build_languages(site_config):
     generation = site_config.get("generation", {}) or {}
     discovery = generation.get("discovery", {}) or {}
     discovery_mode = str(discovery.get("mode", "") or "")
-    if discovery_mode != "project_catalog" and generation.get("mode") != "project_catalog":
+    if {"mode", "output_structure"}.intersection(generation):
+        raise ValueError("Removed generation fields; use discovery.mode and navigation.mode/order")
+    if discovery_mode != "project_catalog":
         return detect_languages(SCRIPT_DIR, generation)
 
     repository = site_config.get("repository", {}) or {}

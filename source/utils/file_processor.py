@@ -27,7 +27,8 @@ from .language_support import (
 class FileProcessor:
     MANIFEST_NAME = ".doc_generator_manifest.json"
     DEFAULT_EXTENSIONS = [
-        ".md", ".rst", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"
+        ".md", ".rst", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
+        ".html", ".htm", ".css", ".js"
     ]
 
     def __init__(

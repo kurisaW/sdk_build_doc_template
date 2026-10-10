@@ -88,13 +88,22 @@ guide/README
                 encoding="utf-8",
             )
             (guide / "README_zh.md").write_text(
-                "# 中文指南\n\n中文正文。\n## UNIQUE_LOCAL_SECTION\n\nSection body.\n",
+                "# 中文指南\n\n中文正文。\n## UNIQUE_LOCAL_SECTION\n\nSection body.\n\n"
+                ":::{admonition} NATIVE_TIP_TITLE\n:class: tip\n\nNATIVE_TIP_BODY\n:::\n\n"
+                "> MARKDOWN_QUOTE_BODY\n",
                 encoding="utf-8",
             )
             (guide / "README.md").write_text(
                 "# English Guide\n\nEnglish body.\n## UNIQUE_EN_LOCAL_SECTION\n\nSection body.\n",
                 encoding="utf-8",
             )
+
+            demo_content = '<html><body><a href="../index.html">Demo</a></body></html>'
+            (guide / "nav2-mulpoint-demo.html").write_text(
+                demo_content, encoding="utf-8"
+            )
+            with (guide / "README_zh.md").open("a", encoding="utf-8") as document:
+                document.write('\n<iframe src="./nav2-mulpoint-demo.html" title="Demo"></iframe>\n')
 
             roots = build_html_site(
                 source, output, config, ("zh", "en"), "zh"
@@ -104,10 +113,24 @@ guide/README
             chinese_page = (output / "guide" / "README_zh.html").read_text(
                 encoding="utf-8"
             )
+            self.assertIn('src="./nav2-mulpoint-demo.html"', chinese_page)
+            self.assertIn('class="tip admonition"', chinese_page)
+            self.assertIn('class="admonition-title">NATIVE_TIP_TITLE', chinese_page)
+            self.assertIn("NATIVE_TIP_BODY", chinese_page)
+            self.assertIn("<blockquote>", chinese_page)
+            self.assertIn("MARKDOWN_QUOTE_BODY", chinese_page)
+            self.assertEqual(
+                (output / "guide/nav2-mulpoint-demo.html").read_text(encoding="utf-8"),
+                demo_content,
+            )
             english_page = (output / "guide" / "README.html").read_text(
                 encoding="utf-8"
             )
             self.assertIn('lang="zh-CN"', chinese_page)
+            self.assertIn('_static/image_viewer.js', chinese_page)
+            self.assertIn('_static_en/image_viewer.js', english_page)
+            self.assertTrue((output / '_static/image_viewer.js').is_file())
+            self.assertTrue((output / '_static_en/image_viewer.js').is_file())
             self.assertIn("中文指南", chinese_page)
             self.assertNotIn("English Guide</a>", chinese_page)
             self.assertIn("sdk-page-outline", chinese_page)

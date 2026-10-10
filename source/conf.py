@@ -238,7 +238,7 @@ myst_url_schemes = ('http', 'https', 'mailto', 'ftp')
 # 图片路径配置
 html_extra_path = []
 html_css_files = ['version_menu.css', 'custom.css', 'pdf_button.css', 'edit_button.css', 'language_switch.css', 'dark_mode.css']
-html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_switch.js', 'navigation_state.js', 'page_outline.js']
+html_js_files = ['version_menu.js', 'download_pdf.js', 'version_info.js', 'edit_on_github.js', 'language_switch.js', 'navigation_state.js', 'page_outline.js', 'image_viewer.js']
 
 # 配置图片路径处理
 html_favicon = None
@@ -560,6 +560,20 @@ latex_elements = {
 \definecolor{inlinecodeink}{RGB}{23, 74, 126}
 \definecolor{codebg}{RGB}{246, 248, 250}
 \definecolor{codeborder}{RGB}{198, 207, 216}
+\usepackage[breakable]{tcolorbox}
+\definecolor{sdktipbg}{RGB}{242,247,254}
+\definecolor{sdktipink}{RGB}{0,68,153}
+\renewenvironment{quote}{%
+  \begin{tcolorbox}[breakable,colback=sdktipbg,
+    colframe=sdktipbg,boxrule=0pt,arc=3.7mm,boxsep=0pt,
+    left=1.375em,right=1.375em,top=1.125em,bottom=1.125em,
+    before skip=1em,after skip=1em,width=\linewidth]
+  \setlength{\parindent}{0pt}\setlength{\parskip}{0.4em}
+  \let\sdktipstartpar\sphinxAtStartPar
+  \def\sphinxAtStartPar{%
+    \let\sphinxAtStartPar\sdktipstartpar
+    \sdktipstartpar\textcolor{sdktipink}{\textbf{Tips:}}\hspace{0.3em}}
+}{\end{tcolorbox}}
 
 % ---- 高校论文风格字体规范（严格模式，不允许替代字体）----
 % 英文与数字采用 Times 风格衬线字体；中文正文、标题和强调文本分别采用
